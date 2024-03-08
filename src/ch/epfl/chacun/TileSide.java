@@ -124,12 +124,13 @@ public sealed interface TileSide {
          */
         @Override
         public boolean isSameKindAs(TileSide that) {
+            int amountOfRivers = 0;
             for (Zone zone : that.zones()) {
-                if (!(zone instanceof Zone.River)) {
-                    return false;
+                if (zone instanceof Zone.River) {
+                    amountOfRivers++;
                 }
             }
-            return true;
+            return (amountOfRivers > 0);
         }
     }
 

@@ -17,9 +17,9 @@ public record PlacedTile(Tile tile, PlayerColor placer, Rotation rotation, Pos p
      * @throws IllegalArgumentException if the tile, rotation, or position is null
      */
     public PlacedTile {
-        Preconditions.checkArgument(tile != null);
-        Preconditions.checkArgument(rotation != null);
-        Preconditions.checkArgument(pos != null);
+        if (tile == null || rotation == null || pos == null) {
+            throw new NullPointerException();
+        }
     }
 
     /**
@@ -55,9 +55,10 @@ public record PlacedTile(Tile tile, PlayerColor placer, Rotation rotation, Pos p
      * @return the side of the tile in the given direction
      */
     public TileSide side(Direction direction) {
-        Direction sumOfDirections = direction.rotated(rotation);
-        List<TileSide> sideZones = tile.sides();
-        return sideZones.get(sumOfDirections.ordinal());
+        Direction finalDirection = direction.rotated(rotation.negated());
+        int finalDirectionOrdinal = finalDirection.ordinal();
+        List<TileSide> sideZones = this.tile.sides();
+        return sideZones.get(finalDirectionOrdinal);
     }
 
     /**

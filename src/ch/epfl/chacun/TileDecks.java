@@ -10,14 +10,15 @@ import java.util.function.Predicate;
  */
 public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile> menhirTiles) {
 
+
     /**
      * Constructor for the TileDecks record.
      * Makes a copy of the provided lists of tiles.
      */
     public TileDecks {
-        List<Tile> copyOfStartTiles = List.copyOf(startTiles);
-        List<Tile> copyOfNormalTiles = List.copyOf(normalTiles);
-        List<Tile> copyOfMenhirTiles = List.copyOf(menhirTiles);
+        startTiles = List.copyOf(startTiles);
+        normalTiles = List.copyOf(normalTiles);
+        menhirTiles = List.copyOf(menhirTiles);
     }
 
     /**
@@ -50,7 +51,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
             }
             case NORMAL -> {
                 if (normalTiles.isEmpty()) {
-                    throw new IllegalArgumentException();
+                    yield null;
                 }
                 yield normalTiles.getFirst();
             }
@@ -77,7 +78,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
             }
             case NORMAL -> {
                 Preconditions.checkArgument(!normalTiles.isEmpty());
-                yield new TileDecks(startTiles, normalTiles.subList(1, startTiles().size()), menhirTiles);
+                yield new TileDecks(startTiles, normalTiles.subList(1, normalTiles.size()), menhirTiles);
             }
             case MENHIR -> {
                 Preconditions.checkArgument(!menhirTiles.isEmpty());
@@ -98,22 +99,22 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
         switch (kind) {
             case START:
                 for (Tile tile : startTiles) {
-                    if (!predicate.test(tile)) {
-                        trimmedTileDeck = withTopTileDrawn(Tile.Kind.START);
+                    while (!predicate.test(tile) && trimmedTileDeck.startTiles.size() > 0) {
+                        trimmedTileDeck = trimmedTileDeck.withTopTileDrawn(Tile.Kind.START);
                     }
                 }
                 break;
             case NORMAL:
                 for (Tile tile: normalTiles) {
-                    if (!predicate.test(tile)) {
-                        trimmedTileDeck = withTopTileDrawn(Tile.Kind.NORMAL);
+                    while (!predicate.test(tile) && trimmedTileDeck.normalTiles.size() > 0) {
+                        trimmedTileDeck = trimmedTileDeck.withTopTileDrawn(Tile.Kind.NORMAL);
                     }
                 }
                 break;
             case MENHIR:
                 for (Tile tile : menhirTiles) {
-                    while (!predicate.test(tile)) {
-                        trimmedTileDeck = withTopTileDrawn(Tile.Kind.MENHIR);
+                    while (!predicate.test(tile) && trimmedTileDeck.menhirTiles.size() > 0) {
+                        trimmedTileDeck = trimmedTileDeck.withTopTileDrawn(Tile.Kind.MENHIR);
                     }
                 }
                 break;

@@ -6,10 +6,12 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
 
     public Area {
         Preconditions.checkArgument(openConnections >= 0);
-        Set<Z> copyOfZones = Set.copyOf(zones);
-        List<PlayerColor> copyOfOccupants = List.copyOf(occupants);
-        List<PlayerColor> sortedCopyOfOccupants = new ArrayList<>(copyOfOccupants);
-        Collections.sort(sortedCopyOfOccupants);
+        if (occupants == null ) {
+            occupants = new ArrayList<>();
+        }
+        zones = Set.copyOf(zones);
+        occupants = new ArrayList<>(List.copyOf(occupants));
+        Collections.sort(occupants);
     }
 
     public static boolean hasMenhir(Area<Zone.Forest> forest) {
@@ -79,6 +81,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     }
 
     public boolean isOccupied() {
+        if (occupants == null) {
+            return false;
+        }
         return !occupants.isEmpty();
     }
 
@@ -125,7 +130,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
         if(counts.get(0) == 0) {
             return result;
         }
+
         List<Integer> onlyMax = new ArrayList<>();
+        onlyMax.add(counts.get(0));
         for (int i = 1; i < counts.size(); i++) {
             if (Objects.equals(counts.get(i), counts.get(0))) {
                 onlyMax.add(i);
@@ -134,13 +141,13 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
         for (int i : onlyMax) {
             if (i == redCount) {
                 result.add(PlayerColor.RED);
-            } else if (i == blueCount) {
+            }if (i == blueCount) {
                 result.add(PlayerColor.BLUE);
-            } else if (i == greenCount) {
+            } if (i == greenCount) {
                 result.add(PlayerColor.GREEN);
-            } else if (i == yellowCount) {
+            } if (i == yellowCount) {
                 result.add(PlayerColor.YELLOW);
-            } else if (i == purpleCount) {
+            } if (i == purpleCount) {
                 result.add(PlayerColor.PURPLE);
             }
         }
@@ -148,19 +155,22 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     }
 
     public Area<Z> connectTo(Area<Z> that) {
-        Set<Z> zones = new HashSet<>();
-        zones.addAll(this.zones);
-        zones.addAll(that.zones);
-        List<PlayerColor> occupants = new ArrayList<>();
-        occupants.addAll(this.occupants);
-        occupants.addAll(that.occupants);
+
         int totalOpenConnextion = 0;
+        // I know I'm comparing by reference
         if (this == that) {
             totalOpenConnextion = this.openConnections - 2;
+            return new Area<>(this.zones, this.occupants, totalOpenConnextion);
         } else {
             totalOpenConnextion = this.openConnections + that.openConnections - 2;
+            Set<Z> zones = new HashSet<>();
+            zones.addAll(this.zones);
+            zones.addAll(that.zones);
+            List<PlayerColor> occupants = new ArrayList<>();
+            occupants.addAll(this.occupants);
+            occupants.addAll(that.occupants);
+            return new Area<>(zones, occupants, totalOpenConnextion);
         }
-        return new Area<>(zones, occupants, totalOpenConnextion);
     }
 
     public Area<Z> withInitialOccupant(PlayerColor occupant) {
@@ -172,8 +182,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
 
     public Area<Z> withoutOccupant(PlayerColor occupant) {
         Preconditions.checkArgument(occupants.contains(occupant));
-        List<PlayerColor> occupants = new ArrayList<>();
-        occupants.addAll(this.occupants);
+        List<PlayerColor> occupants = new ArrayList<>(this.occupants);
         occupants.remove(occupant);
         return new Area<>(zones, occupants, openConnections);
     }
@@ -185,7 +194,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     public Set<Integer> tileIds() {
         Set<Integer> tileIds = new HashSet<>();
         for (Z zone : zones) {
-            tileIds.add(zone.tileId());
+            tileIds.add(zone.id());
         }
         return tileIds;
     }

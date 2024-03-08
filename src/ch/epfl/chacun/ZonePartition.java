@@ -1,17 +1,18 @@
 package ch.epfl.chacun;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
 
     public ZonePartition {
-        Set<Area<Z>> copyOfAreas = Set.copyOf(areas);
+        areas = Set.copyOf(areas);
     }
 
     public ZonePartition() {
-        this(Set.of());
+        this(new HashSet<>(Set.of()));
     }
 
     public Area<Z> areaContaining(Z zone) {
@@ -24,12 +25,17 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         return null;
     }
 
-    public final class Builder<Z extends Zone> {
-        private Set<Area<Z>> areas = Set.of();
+    public static final class Builder<Z extends Zone> {
+        private Set<Area<Z>> areas = new HashSet<>(Set.of());
 
+        public Builder(ZonePartition<Z> partition) {
+            for (Area<Z> area : partition.areas) {
+                areas.add(area);
+            }
+        }
 
         public void addSingleton(Z zone, int openConnections) {
-            areas.add(new Area<Z>(Set.of(zone), null,openConnections));
+            areas.add(new Area<>(Set.of(zone), null,openConnections));
         }
 
         public void addInitialOccupant(Z zone, PlayerColor color) {
@@ -40,6 +46,8 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
                     Area<Z> newArea = new Area<Z>(area.zones(), List.of(color), area.openConnections());
                     areas.remove(area);
                     areas.add(newArea);
+                    added = true;
+                    break;
                 }
             }
             if (!added) {
@@ -57,6 +65,8 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
                     Area<Z> newArea = new Area<Z>(area.zones(), newOccupants, area.openConnections());
                     areas.remove(area);
                     areas.add(newArea);
+                    removed = true;
+                    break;
                 }
             }
             if (!removed) {
@@ -81,6 +91,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
                         areas.remove(area2);
                         areas.add(newArea);
                         connected = true;
+                        break;
                     }
                 }
             }
@@ -89,7 +100,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
             }
         }
 
-        public ZonePartition<Z> build() {
+        public ZonePartition<Z>  build() {
             return new ZonePartition<>(areas);
         }
 
