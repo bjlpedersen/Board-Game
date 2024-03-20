@@ -61,11 +61,16 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
                     case Zone.Forest forest -> forestBuilder.addSingleton(forest, openConnectionForZones[z.id()]);
                     case Zone.Meadow meadow -> meadowBuilder.addSingleton(meadow, openConnectionForZones[z.id()]);
                     case Zone.River river -> {
-                        int openConnections = ((Zone.River) z).hasLake() ? openConnectionForZones[z.id()] - 1 : openConnectionForZones[z.id()];
+                        int openConnections;
+                        if (((Zone.River) z).hasLake()) {
+                            openConnections = openConnectionForZones[z.id()] - 1;
+                        } else {
+                            openConnections = openConnectionForZones[z.id()];
+                        }
                         riverBuilder.addSingleton(river, openConnections);
                         waterBuilder.addSingleton(river, openConnections);
                     }
-                    case Zone.Water water -> waterBuilder.addSingleton(water, openConnectionForZones[z.id()]);
+                    case Zone.Water water -> waterBuilder.addSingleton(water, openConnectionForZones[z.id()] + 1);
                 }
             }
             for (Zone z : tile.zones()) {
@@ -93,6 +98,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
                         riverBuilder.union(r1, r2);
                         meadowBuilder.union(m3, m6);
                         meadowBuilder.union(m4, m5);
+                        waterBuilder.union(r1, r2);
                 }
                 default -> throw new IllegalArgumentException();
             }
@@ -118,7 +124,11 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
                     if (((Zone.River) occupiedZone).hasLake()) {
                         Preconditions.checkArgument(occupantKind == Occupant.Kind.PAWN);
                     }
-                    riverBuilder.addInitialOccupant((Zone.River) occupiedZone, player);
+                    if (occupantKind == Occupant.Kind.PAWN) {
+                        riverBuilder.addInitialOccupant((Zone.River) occupiedZone, player);
+                    } else {
+                        waterBuilder.addInitialOccupant((Zone.Water) occupiedZone, player);
+                    }
                 }
                 case Zone.Lake ignored -> {
                     Preconditions.checkArgument(occupantKind == Occupant.Kind.HUT);
