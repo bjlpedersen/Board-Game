@@ -74,15 +74,18 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
         return switch (kind) {
             case START -> {
                 Preconditions.checkArgument(!startTiles.isEmpty());
-                yield new TileDecks(startTiles.subList(1, startTiles().size()), normalTiles, menhirTiles);
+                List<Tile> newStart = startTiles.subList(1, startTiles.size());
+                yield new TileDecks(newStart, normalTiles, menhirTiles);
             }
             case NORMAL -> {
                 Preconditions.checkArgument(!normalTiles.isEmpty());
-                yield new TileDecks(startTiles, normalTiles.subList(1, normalTiles.size()), menhirTiles);
+                List<Tile> newNormal = normalTiles.subList(1, normalTiles.size());
+                yield new TileDecks(startTiles, newNormal, menhirTiles);
             }
             case MENHIR -> {
                 Preconditions.checkArgument(!menhirTiles.isEmpty());
-                yield new TileDecks(startTiles, normalTiles, menhirTiles.subList(1, menhirTiles.size()));
+                List<Tile> newMenhir = menhirTiles.subList(1, menhirTiles.size());
+                yield new TileDecks(startTiles, normalTiles, newMenhir);
             }
         };
     }
@@ -102,6 +105,9 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
                     while (!predicate.test(tile) && trimmedTileDeck.startTiles.size() > 0) {
                         trimmedTileDeck = trimmedTileDeck.withTopTileDrawn(Tile.Kind.START);
                     }
+                    if (predicate.test(tile)) {
+                        break;
+                    }
                 }
                 break;
             case NORMAL:
@@ -109,12 +115,18 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
                     while (!predicate.test(tile) && trimmedTileDeck.normalTiles.size() > 0) {
                         trimmedTileDeck = trimmedTileDeck.withTopTileDrawn(Tile.Kind.NORMAL);
                     }
+                    if (predicate.test(tile)) {
+                        break;
+                    }
                 }
                 break;
             case MENHIR:
                 for (Tile tile : menhirTiles) {
                     while (!predicate.test(tile) && trimmedTileDeck.menhirTiles.size() > 0) {
                         trimmedTileDeck = trimmedTileDeck.withTopTileDrawn(Tile.Kind.MENHIR);
+                    }
+                    if (predicate.test(tile)) {
+                        break;
                     }
                 }
                 break;

@@ -14,6 +14,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * It checks if the number of open connections is greater than or equal to 0.
      * If the occupants list is null, it initializes it as an empty list.
      * It also makes a copy of the zones set and the occupants list, and sorts the occupants list.
+     * @throws IllegalArgumentException if the number of open connections is less than 0
      */
     public Area {
         Preconditions.checkArgument(openConnections >= 0);
@@ -237,6 +238,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * Adds an initial occupant to the area.
      * @param occupant The initial occupant to add.
      * @return The new area with the initial occupant.
+     * @throws IllegalArgumentException if the area already has occupants
      */
     public Area<Z> withInitialOccupant(PlayerColor occupant) {
         Preconditions.checkArgument(occupants.isEmpty());
@@ -249,6 +251,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * Removes an occupant from the area.
      * @param occupant The occupant to remove.
      * @return The new area without the occupant.
+     * @throws IllegalArgumentException if the occupant is not in the area
      */
     public Area<Z> withoutOccupant(PlayerColor occupant) {
         Preconditions.checkArgument(occupants.contains(occupant));

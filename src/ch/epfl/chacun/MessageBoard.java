@@ -35,6 +35,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * Updates the message board with a new message (of type playerScoredForest) if needed.
      * @param forest the forest that has just been closed
      * @return A new message board with the added message / same message board.
+     * @throws IllegalArgumentException if the forest is not occupied
      */
     public MessageBoard withScoredForest(Area<Zone.Forest> forest) {
         if (forest.isOccupied()) {
@@ -200,6 +201,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * Updates the message board with a new message (of type playerScoredRivreSystem) if needed.
      * @param riverSystem the aquatic region in question
      * @return A new message board with the added message / same message board.
+     * @throws IllegalArgumentException if the river system is not occupied or the points for the river system are not greater than 0
      */
     public MessageBoard withScoredRiverSystem(Area<Zone.Water> riverSystem) {
         if (riverSystem.isOccupied() && Points.forRiverSystem(Area.riverSystemFishCount(riverSystem)) > 0) {
@@ -222,6 +224,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * @param adjacentMeadow adjacent meadows with animals
      * @param cancelledAnimals the animals that were cancelled
      * @return A new message board with the added message / same message board.
+     * @throws IllegalArgumentException if the meadow is not occupied or the points for the meadow are not greater than 0
      */
     public MessageBoard withScoredPitTrap(Area<Zone.Meadow> adjacentMeadow, Set<Animal> cancelledAnimals) {
         Set<Animal> animalsWithoutCancelled = Area.animals(adjacentMeadow, cancelledAnimals);
@@ -253,6 +256,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * Updates the message board with a new message (of type PlayerScoredRaft) if needed.
      * @param riverSystem the aquatic area in question
      * @return A new message board with the added message / same message board.
+     * @throws IllegalArgumentException if the river system is not occupied
      */
     public MessageBoard withScoredRaft(Area<Zone.Water> riverSystem) {
         if (riverSystem.isOccupied()) {
@@ -294,6 +298,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
          * @param points The points associated with the message.
          * @param scorers The set of players who scored.
          * @param tileIds The set of tile IDs associated with the message.
+         * @throws IllegalArgumentException if the points are not greater than or equal to 0
          */
         public Message {
             if (text == null) {

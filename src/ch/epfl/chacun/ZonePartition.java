@@ -74,6 +74,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * Adds an initial occupant to the area that contains the given zone.
          * @param zone The zone to look for.
          * @param color The color of the occupant to add.
+         * @throws IllegalArgumentException if the occupant cannot be added
          */
         public void addInitialOccupant(Z zone, PlayerColor color) {
             boolean added = false;
@@ -96,6 +97,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * Removes an occupant from the area that contains the given zone.
          * @param zone The zone to look for.
          * @param color The color of the occupant to remove.
+         * @throws IllegalArgumentException if the occupant cannot be removed
          */
         public void removeOccupant(Z zone, PlayerColor color) {
             boolean removed = false;
@@ -131,12 +133,13 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * Unions the areas that contain the given zones.
          * @param zone1 The first zone to look for.
          * @param zone2 The second zone to look for.
+         * @throws IllegalArgumentException if the zones cannot be unioned
          */
         public void union(Z zone1, Z zone2) {
             boolean connected = false;
             Set<Area<Z>> areasCopy = Set.copyOf(areas);
             for (Area<Z> area1 : areasCopy) {
-                for (Area<Z> area2 : areas) {
+                for (Area<Z> area2 : areasCopy) {
                     if (area1.zones().contains(zone1) && area2.zones().contains(zone2)) {
                         Area<Z> newArea = area1.connectTo(area2);
                         areas.remove(area1);
@@ -148,7 +151,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
                 }
             }
             if (!connected) {
-                Preconditions.checkArgument(false);
+                throw new IllegalArgumentException();
             }
         }
 

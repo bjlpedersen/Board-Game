@@ -15,6 +15,7 @@ public record PlacedTile(Tile tile, PlayerColor placer, Rotation rotation, Pos p
      * Constructor for the PlacedTile record.
      * Checks that the tile, rotation, and position are not null.
      * @throws IllegalArgumentException if the tile, rotation, or position is null
+     * @throws NullPointerException if the tile, rotation, or position is null
      */
     public PlacedTile {
         if (tile == null || rotation == null || pos == null) {

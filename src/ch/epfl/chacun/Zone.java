@@ -155,6 +155,10 @@ public sealed interface Zone {
         public int localId() {
             return id % 10;
         }
+
+//        public int id() {
+//            return tileId() + localId();
+//        }
     }
 
     /**

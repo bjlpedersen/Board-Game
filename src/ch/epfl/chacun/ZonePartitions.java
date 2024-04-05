@@ -43,34 +43,38 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
         /**
          * Adds a tile to the zone partitions.
          * @param tile The tile to add.
+         * @throws IllegalArgumentException if the tile cannot be added
          */
         public void addTile(Tile tile) {
             int[] openConnectionForZones = new int[10];
-            for (Zone z : tile.zones()) {
+            for (Zone z : tile.sideZones()) {
                 for (TileSide side : tile.sides()) {
                     if (side.zones().contains(z)) {
-                        openConnectionForZones[z.id()]++;
+                        openConnectionForZones[z.localId()]++;
                     }
                 }
-                if ((z instanceof Zone.River && ((Zone.River) z).hasLake()) || z instanceof Zone.Lake) {
-                    openConnectionForZones[z.id()]++;
+                if (z instanceof Zone.River river && river.hasLake()) {
+                    openConnectionForZones[river.lake().localId()]++;
+                    openConnectionForZones[river.localId()]++;
                 }
             }
             for (Zone z : tile.zones()) {
                 switch (z) {
-                    case Zone.Forest forest -> forestBuilder.addSingleton(forest, openConnectionForZones[z.id()]);
-                    case Zone.Meadow meadow -> meadowBuilder.addSingleton(meadow, openConnectionForZones[z.id()]);
+                    case Zone.Forest forest -> forestBuilder.addSingleton(forest, openConnectionForZones[z.localId()]);
+                    case Zone.Meadow meadow -> meadowBuilder.addSingleton(meadow, openConnectionForZones[z.localId()]);
                     case Zone.River river -> {
-                        int openConnections;
+                        int openConnectionsRiver;
                         if (((Zone.River) z).hasLake()) {
-                            openConnections = openConnectionForZones[z.id()] - 1;
+                            openConnectionsRiver = openConnectionForZones[z.localId()] - 1;
+                            waterBuilder.addSingleton(river, openConnectionsRiver + 1);
+                            riverBuilder.addSingleton(river, openConnectionsRiver);
                         } else {
-                            openConnections = openConnectionForZones[z.id()];
+                            openConnectionsRiver = openConnectionForZones[z.localId()];
+                            waterBuilder.addSingleton(river, openConnectionsRiver);
+                            riverBuilder.addSingleton(river, openConnectionsRiver);
                         }
-                        riverBuilder.addSingleton(river, openConnections);
-                        waterBuilder.addSingleton(river, openConnections);
                     }
-                    case Zone.Water water -> waterBuilder.addSingleton(water, openConnectionForZones[z.id()] + 1);
+                    case Zone.Lake lake -> waterBuilder.addSingleton(lake, openConnectionForZones[z.localId()]);
                 }
             }
             for (Zone z : tile.zones()) {
@@ -84,6 +88,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
          * Connects two sides of different tiles.
          * @param s1 The first side to connect.
          * @param s2 The second side to connect.
+         * @throws IllegalArgumentException if the sides cannot be connected
          */
         public void connectSides(TileSide s1, TileSide s2) {
             switch (s1) {
@@ -109,6 +114,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
          * @param player The player color of the occupant.
          * @param occupantKind The kind of the occupant.
          * @param occupiedZone The zone to add the occupant to.
+         * @throws IllegalArgumentException if the occupant cannot be added
          */
         public void addInitialOccupant(PlayerColor player, Occupant.Kind occupantKind, Zone occupiedZone) {
             switch(occupiedZone) {
@@ -141,6 +147,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
          * Removes a pawn from a zone.
          * @param player The player color of the pawn.
          * @param occupiedZone The zone to remove the pawn from.
+         * @throws IllegalArgumentException if the pawn cannot be removed
          */
         public void removePawn(PlayerColor player, Zone occupiedZone) {
             switch(occupiedZone) {
@@ -154,6 +161,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
         /**
          * Clears all gatherers from a forest area.
          * @param forest The forest area to clear the gatherers from.
+         * @throws IllegalArgumentException if the gatherers cannot be cleared
          */
         public void clearGatherers(Area<Zone.Forest> forest) {
             forestBuilder.removeAllOccupantsOf(forest);
@@ -162,6 +170,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
         /**
          * Clears all fishers from a river area.
          * @param river The river area to clear the fishers from.
+         * @throws IllegalArgumentException if the fishers cannot be cleared
          */
         public void clearFishers(Area<Zone.River> river) {
             riverBuilder.removeAllOccupantsOf(river);
