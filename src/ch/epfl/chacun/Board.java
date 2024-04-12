@@ -458,7 +458,10 @@ public class Board {
         PlacedTile[] newPlacedTiles = removeOccupantsInZonePartitionsForest(forests, placedTilesInArray.clone());
         newPlacedTiles = removeOccupantsInZonePartitionsRiver(rivers, newPlacedTiles);
 
-        return new Board(newPlacedTiles, placedTilesOrder, new ZonePartitions(forestPartition, zonePartitions.meadows(), riverPartition, zonePartitions.riverSystems()), deletedAnimals);
+        return new Board(newPlacedTiles,
+                placedTilesOrder,
+                new ZonePartitions(forestPartition, zonePartitions.meadows(), riverPartition, zonePartitions.riverSystems()),
+                deletedAnimals);
     }
 
     /**
@@ -498,7 +501,10 @@ public class Board {
             PlacedTile placedTile = tileWithId(orderId);
             for (Zone.River river : placedTile.riverZones()) {
                 Area<Zone.River> area = zonePartitions.rivers().areaContaining(river);
-                if (rivers.contains(area) && area.isOccupied()) {
+                if (rivers.contains(area) &&
+                        area.isOccupied() &&
+                        placedTile.occupant() != null &&
+                        placedTile.occupant().kind() != Occupant.Kind.HUT) {
                     PlacedTile newTile = new PlacedTile(placedTile.tile(), placedTile.placer(), placedTile.rotation(), placedTile.pos(), null);
                     int indexInPlacedTiles = placedTile.pos().x() + REACH + (placedTile.pos().y() + REACH) * (REACH * 2 + 1);
                     newPlacedTiles[indexInPlacedTiles] = newTile;

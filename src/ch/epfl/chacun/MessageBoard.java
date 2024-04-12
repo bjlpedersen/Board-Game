@@ -128,7 +128,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
         map.put(Animal.Kind.MAMMOTH, mammothCount);
         map.put(Animal.Kind.TIGER, tigerCount);
         if (Points.forMeadow(mammothCount, aurochsCount, deerCount) > 0) {
-            List<Message> increasedMessages = messages;
+            List<Message> increasedMessages = new ArrayList<>(messages);
             increasedMessages.add(new Message(textMaker.playerScoredHuntingTrap(scorer, Points.forMeadow(mammothCount, aurochsCount, deerCount), map),
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
                     Set.of(scorer),
@@ -165,16 +165,21 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
         int mammothCount = 0;
         int aurochsCount = 0;
         int deerCount = 0;
+        int tigerCount = 0;
         Set<Animal> animals = Area.animals(meadow, cancelledAnimals);
         for (Animal animal : animals) {
             switch (animal.kind()) {
                 case MAMMOTH -> mammothCount++;
                 case AUROCHS -> aurochsCount++;
                 case DEER -> deerCount++;
+                case TIGER -> tigerCount++;
             }
         }
 
-        Map<Animal.Kind, Integer> fullAnimalMap = Map.of(Animal.Kind.MAMMOTH, mammothCount, Animal.Kind.AUROCHS, aurochsCount, Animal.Kind.DEER, deerCount);
+        Map<Animal.Kind, Integer> fullAnimalMap = Map.of(Animal.Kind.MAMMOTH,
+                mammothCount, Animal.Kind.AUROCHS,
+                aurochsCount, Animal.Kind.DEER, deerCount,
+                Animal.Kind.TIGER, tigerCount);
         Map<Animal.Kind, Integer> reducedAnimalMap = new HashMap<>();
         for (Animal.Kind kind : fullAnimalMap.keySet()) {
             if (fullAnimalMap.get(kind) > 0) {
@@ -187,7 +192,6 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
             increasedMessages.add(new Message(textMaker.playersScoredMeadow(meadow.majorityOccupants(),
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
                     reducedAnimalMap),
-
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
                     meadow.majorityOccupants(),
                     meadow.tileIds()));
@@ -231,18 +235,20 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
         int aurochsCount = 0;
         int mammothCount = 0;
         int deerCount = 0;
+        int tigerCount = 0;
         for (Animal animal : animalsWithoutCancelled) {
             switch (animal.kind()) {
                 case AUROCHS -> aurochsCount++;
                 case MAMMOTH -> mammothCount++;
                 case DEER -> deerCount++;
+                case TIGER -> tigerCount++;
             }
         }
-        if (Points.forMeadow(mammothCount, aurochsCount, deerCount) > 0) {
+        if (Points.forMeadow(mammothCount, aurochsCount, deerCount) > 0  && adjacentMeadow.isOccupied()) {
             List<Message> increasedMessages = new ArrayList<>(messages);
             increasedMessages.add(new Message(textMaker.playersScoredPitTrap(adjacentMeadow.majorityOccupants(),
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
-                    Map.of(Animal.Kind.MAMMOTH, mammothCount, Animal.Kind.AUROCHS, aurochsCount, Animal.Kind.DEER, deerCount)),
+                    Map.of(Animal.Kind.MAMMOTH, mammothCount, Animal.Kind.AUROCHS, aurochsCount, Animal.Kind.DEER, deerCount, Animal.Kind.TIGER, tigerCount)),
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
                     adjacentMeadow.majorityOccupants(),
                     adjacentMeadow.tileIds()));
@@ -267,6 +273,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
                     Points.forRaft(Area.lakeCount(riverSystem)),
                     riverSystem.majorityOccupants(),
                     riverSystem.tileIds()));
+
             return new MessageBoard(textMaker, increasedMessages);
         } else {
             return this;
@@ -280,7 +287,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * @return A new message board with the added message / same message board.
      */
     public MessageBoard withWinners(Set<PlayerColor> winners, int points) {
-        Message message = new Message(textMaker.playersWon(winners, points), points, winners, Set.of());
+        Message message = new Message(textMaker.playersWon(winners, points), 0, winners, Set.of());
         List<Message> newMessage = new ArrayList<>(messages);
         newMessage.add(message);
         return new MessageBoard(textMaker, newMessage);
