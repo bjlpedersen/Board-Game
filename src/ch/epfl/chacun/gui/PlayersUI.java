@@ -5,82 +5,59 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 public class PlayersUI {
     private PlayersUI() {}
 
-    public static Node create(ObservableValue<GameState> observable, TextMaker textMaker) {
-        VBox box = new VBox();
-        box.getStylesheets().add("player.css");
-        box.setId("players");
+    public static Node create(ObservableValue<GameState> obsGameState, TextMaker text) {
+        VBox generalBox = new VBox();
+        generalBox.getStylesheets().add("players.css");
+        generalBox.setId("players");
 
-        Set<PlayerColor> activePlayers = new HashSet<>();
-        for (PlayerColor player : PlayerColor.ALL) {
-            if (textMaker.playerName(player) != null) {
-                activePlayers.add(player);
-            }
-        }
-
-        ObservableValue<Map<PlayerColor, Integer>> pointsO = observable.map(g-> g.messageBoard().points());
-        Map<PlayerColor, TextFlow> playerTextFlows = new HashMap<>();
-        for (PlayerColor p: activePlayers) {
-            TextFlow playerTextFlow = new TextFlow();
-
-            playerTextFlow.setId("player");
-            if (p == observable.getValue().currentPlayer()) {
-                playerTextFlow.setStyle("current");
-            } else {
-                playerTextFlow.setStyle("");
-            }
-
-            ObservableValue<String> pointsTextO = pointsO.map(s ->
-                    textMaker.playerName(p) + " : " + s.get(p).toString() + " points");
-
-            Text pointsText = new Text();
-            pointsText.textProperty().bind(pointsTextO);
-
-            playerTextFlow.getChildren().add(pointsText);
-            playerTextFlow.getChildren().add(new Circle(5, ColorMap.fillColor(p)));
-
-            List<Occupant.Kind> occupants = List.of(
-                    Occupant.Kind.HUT,
-                    Occupant.Kind.PAWN);
-
-            for (Occupant.Kind kind : occupants) {
-                for (int i = 0; i < Occupant.occupantsCount(kind); ++i) {
-                    if (i < observable.getValue().freeOccupantsCount(p, kind)) {
-                        Node svgIm = Icon.newFor(ColorMap.fillColor(p), kind);
-                        svgIm.opacityProperty().set(1);
-                        playerTextFlow.getChildren().add(svgIm);
-                    } else {
-                        Node svgIm = Icon.newFor(ColorMap.fillColor(p), kind);
-                        svgIm.opacityProperty().set(0.1);
-                        playerTextFlow.getChildren().add(svgIm);
-                    }
-                }
-            }
-
-            playerTextFlows.put(p, playerTextFlow);
-        }
-
-        ObservableValue<PlayerColor> currentPlayer0 = observable.map(GameState::currentPlayer);
-        currentPlayer0.addListener((o, oldPlayer, newPlayer) -> {
-            for (Node node : playerTextFlows.get(oldPlayer).getChildren()) {
-                if (node instanceof Rectangle) node.opacityProperty().set(0);
-            }
-            for (Node node : playerTextFlows.get(newPlayer).getChildren()) {
-                if (node instanceof Rectangle) node.opacityProperty().set(1);
-            }
+        ObservableValue<PlayerColor> currentPlayer = obsGameState.map(GameState::currentPlayer);
+        ObservableValue<Map<PlayerColor, Integer>> points = obsGameState.map(gameState -> {
+            return gameState.messageBoard().points();
         });
 
-        for (TextFlow flow : playerTextFlows.values()) {
-            box.getChildren().add(flow);
+        for (PlayerColor player : obsGameState.getValue().players()) {
+            TextFlow occupant = new TextFlow();
+            occupant.getStyleClass().add("player");
+            Circle playerCircle = new Circle(5, ColorMap.fillColor(player));
+            Text playerText = new Text();
+
+            ObservableValue<String> pointsText = points.map( playerColor -> {
+                return STR." \{text.playerName(player)} : \{points.getValue().getOrDefault(player, 0)} \n";
+            });
+            playerText.textProperty().bind(pointsText);
+
+            currentPlayer.addListener((o, oldPlayer, newPlayer) -> {
+                for (Node textFlow : generalBox.getChildren()) {
+                    textFlow.getStyleClass().remove("current");
+                }
+                occupant.getStyleClass().add("current");
+            });
+            occupant.getChildren().add(playerCircle);
+            occupant.getChildren().add(playerText);
+
+            for (Occupant.Kind o : Set.of(Occupant.Kind.HUT, Occupant.Kind.PAWN)) {
+                for (int i = 0; i < Occupant.occupantsCount(o); ++i) {
+                    Node occ = Icon.newFor(ColorMap.fillColor(player), o);
+                    int finalI = i;
+                    ObservableValue<Double> opacity = obsGameState.map(gameState ->
+                        gameState.freeOccupantsCount(player, o) < finalI ? 0.1 : 1);
+
+                    occ.opacityProperty().bind(opacity);
+                    occupant.getChildren().add(occ);
+                }
+                occupant.getChildren().add(new Text("   "));
+            }
+            generalBox.getChildren().add(occupant);
         }
-        return box;
+        return generalBox;
     }
 }
