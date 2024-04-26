@@ -181,7 +181,11 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
          * @return The built ZonePartitions instance.
          */
         public ZonePartitions build() {
-            return new ZonePartitions(forestBuilder.build(), meadowBuilder.build(), riverBuilder.build(), waterBuilder.build());
+            return new ZonePartitions(
+                    forestBuilder.build(),
+                    meadowBuilder.build(),
+                    riverBuilder.build(),
+                    waterBuilder.build());
         }
     }
 }

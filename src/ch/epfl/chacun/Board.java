@@ -1,7 +1,5 @@
 package ch.epfl.chacun;
 
-import org.junit.jupiter.params.shadow.com.univocity.parsers.common.iterators.RecordIterator;
-
 import java.util.*;
 
 /**
@@ -224,14 +222,22 @@ public class Board {
      */
     private static Set<Direction> tileOnEdge(PlacedTile placedTile) {
         Set<Direction> possibleDirections = new HashSet<>(Set.of(Direction.N, Direction.W, Direction.E, Direction.S));
+
+        // If the tile is on the left edge of the board, it cannot expand further to the West, so remove West from possible directions
         if (placedTile.pos().x() == -REACH) {
             possibleDirections.remove(Direction.W);
-        } else if (placedTile.pos().x() == REACH) {
+        }
+        // If the tile is on the right edge of the board, it cannot expand further to the East, so remove East from possible directions
+        else if (placedTile.pos().x() == REACH) {
             possibleDirections.remove(Direction.E);
         }
+
+        // If the tile is on the bottom edge of the board, it cannot expand further to the North, so remove North from possible directions
         if (placedTile.pos().y() == -REACH) {
             possibleDirections.remove(Direction.N);
-        } else if (placedTile.pos().y() == REACH) {
+        }
+        // If the tile is on the top edge of the board, it cannot expand further to the South, so remove South from possible directions
+        else if (placedTile.pos().y() == REACH) {
             possibleDirections.remove(Direction.S);
         }
         return possibleDirections;
@@ -346,7 +352,7 @@ public class Board {
     }
 
     /**
-     * Returns whether the given tiles are compatible in the given direction.
+     * Returns whether the given tiles are compatible in the given direction: if their two sides are compatible
      *
      * @param tile1 the first tile
      * @param tile2 the second tile
@@ -465,20 +471,32 @@ public class Board {
     }
 
     /**
-     * Removes occupants in forests
+     * Removes occupants in the given forests
      * @param forests the Set of allforest areas
      * @param placedTiles the list of placed tiles it has to remove occupants from
      * @return new board with no occupants in forests
      */
     private PlacedTile[] removeOccupantsInZonePartitionsForest(Set<Area<Zone.Forest>> forests, PlacedTile[] placedTiles) {
+        // Clone the array of placed tiles
         PlacedTile[] newPlacedTiles = placedTiles.clone();
         for (int orderId : placedTilesOrder) {
+            // Get the placed tile with the current order ID
             PlacedTile placedTile = tileWithId(orderId);
+
+            // Iterate over the forest zones in the placed tile
             for (Zone.Forest forest : placedTile.forestZones()) {
+                // Get the area containing the current forest zone
                 Area<Zone.Forest> area = zonePartitions.forests().areaContaining(forest);
+
+                // If the area is in the set of forests, is occupied, and the occupant's zone ID matches the forest's ID
                 if (forests.contains(area) && area.isOccupied() && placedTile.occupant() != null && placedTile.occupant().zoneId() == forest.id()) {
+                    // Create a new tile with the same properties as the placed tile, but with no occupant
                     PlacedTile newTile = new PlacedTile(placedTile.tile(), placedTile.placer(), placedTile.rotation(), placedTile.pos(), null);
+
+                    // Calculate the index in the array of placed tiles
                     int indexInPlacedTiles = placedTile.pos().x() + REACH + (placedTile.pos().y() + REACH) * (REACH * 2 + 1);
+
+                    // Replace the tile at the calculated index with the new tile
                     newPlacedTiles[indexInPlacedTiles] = newTile;
                 }
             }
@@ -493,20 +511,35 @@ public class Board {
      * @return a new board with no occupants in rivers
      */
     private PlacedTile[] removeOccupantsInZonePartitionsRiver(Set<Area<Zone.River>> rivers, PlacedTile[] placedTiles) {
+        // Clone the array of placed tiles
         PlacedTile[] newPlacedTiles = placedTiles.clone();
         for (int orderId : placedTilesOrder) {
-            if (tileWithId(orderId) == null) {
+            // Get the placed tile with the current order ID
+            PlacedTile placedTile = tileWithId(orderId);
+
+            // If the placed tile is null, skip to the next iteration
+            if (placedTile == null) {
                 continue;
             }
-            PlacedTile placedTile = tileWithId(orderId);
+
+            // Iterate over the river zones in the placed tile
             for (Zone.River river : placedTile.riverZones()) {
+                // Get the area containing the current river zone
                 Area<Zone.River> area = zonePartitions.rivers().areaContaining(river);
+
+                // If the area is in the set of rivers, is occupied, and the occupant is not a hut
                 if (rivers.contains(area) &&
                         area.isOccupied() &&
                         placedTile.occupant() != null &&
                         placedTile.occupant().kind() != Occupant.Kind.HUT) {
+
+                    // Create a new tile with the same properties as the placed tile, but with no occupant
                     PlacedTile newTile = new PlacedTile(placedTile.tile(), placedTile.placer(), placedTile.rotation(), placedTile.pos(), null);
+
+                    // Calculate the index in the array of placed tiles
                     int indexInPlacedTiles = placedTile.pos().x() + REACH + (placedTile.pos().y() + REACH) * (REACH * 2 + 1);
+
+                    // Replace the tile at the calculated index with the new tile
                     newPlacedTiles[indexInPlacedTiles] = newTile;
                 }
             }

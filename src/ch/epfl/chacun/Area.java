@@ -144,37 +144,27 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return The set of occupants who have the majority.
      */
     public Set<PlayerColor> majorityOccupants() {
-        List<PlayerColor> redPlayers = new ArrayList<>();
         int redCount = 0;
-        List<PlayerColor> bluePlayers = new ArrayList<>();
         int blueCount = 0;
-        List<PlayerColor> yellowPlayers = new ArrayList<>();
         int yellowCount = 0;
-        List<PlayerColor> greenPlayers = new ArrayList<>();
         int greenCount = 0;
-        List<PlayerColor> purplePlayers = new ArrayList<>();
         int purpleCount = 0;
 
         for (PlayerColor color : occupants) {
             switch (color) {
                 case PlayerColor.RED:
-                    redPlayers.add(color);
                     redCount++;
                     break;
                 case PlayerColor.BLUE:
-                    bluePlayers.add(color);
                     blueCount++;
                     break;
                 case PlayerColor.GREEN:
-                    greenPlayers.add(color);
                     greenCount++;
                     break;
                 case PlayerColor.YELLOW:
-                    yellowPlayers.add(color);
                     yellowCount++;
                     break;
                 case PlayerColor.PURPLE:
-                    purplePlayers.add(color);
                     purpleCount++;
                     break;
             }

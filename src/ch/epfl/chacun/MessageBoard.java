@@ -129,7 +129,9 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
         map.put(Animal.Kind.TIGER, tigerCount);
         if (Points.forMeadow(mammothCount, aurochsCount, deerCount) > 0) {
             List<Message> increasedMessages = new ArrayList<>(messages);
-            increasedMessages.add(new Message(textMaker.playerScoredHuntingTrap(scorer, Points.forMeadow(mammothCount, aurochsCount, deerCount), map),
+            increasedMessages.add(new Message(textMaker.playerScoredHuntingTrap(
+                                                        scorer,
+                                                        Points.forMeadow(mammothCount, aurochsCount, deerCount), map),
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
                     Set.of(scorer),
                     adjacentMeadow.tileIds()));
@@ -146,10 +148,13 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * @return A new message board with the added message / same message board.
      */
     public MessageBoard withScoredLogboat(PlayerColor scorer, Area<Zone.Water> riverSystem) {
-        Message message = new Message(textMaker.playerScoredLogboat(scorer, Points.forLogboat(Area.lakeCount(riverSystem)), Area.lakeCount(riverSystem)),
-                Points.forLogboat(Area.lakeCount(riverSystem)),
-                Set.of(scorer),
-                riverSystem.tileIds());
+        Message message = new Message(textMaker.playerScoredLogboat(
+                                                scorer,
+                                                Points.forLogboat(Area.lakeCount(riverSystem)),
+                                                Area.lakeCount(riverSystem)),
+                            Points.forLogboat(Area.lakeCount(riverSystem)),
+                            Set.of(scorer),
+                            riverSystem.tileIds());
         List<Message> newMessage = new ArrayList<>(messages);
         newMessage.add(message);
         return new MessageBoard(textMaker, newMessage);
@@ -205,7 +210,8 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * Updates the message board with a new message (of type playerScoredRivreSystem) if needed.
      * @param riverSystem the aquatic region in question
      * @return A new message board with the added message / same message board.
-     * @throws IllegalArgumentException if the river system is not occupied or the points for the river system are not greater than 0
+     * @throws IllegalArgumentException if the river system is not occupied or the points for the river system
+     * are not greater than 0
      */
     public MessageBoard withScoredRiverSystem(Area<Zone.Water> riverSystem) {
         if (riverSystem.isOccupied() && Points.forRiverSystem(Area.riverSystemFishCount(riverSystem)) > 0) {
@@ -248,7 +254,11 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
             List<Message> increasedMessages = new ArrayList<>(messages);
             increasedMessages.add(new Message(textMaker.playersScoredPitTrap(adjacentMeadow.majorityOccupants(),
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
-                    Map.of(Animal.Kind.MAMMOTH, mammothCount, Animal.Kind.AUROCHS, aurochsCount, Animal.Kind.DEER, deerCount, Animal.Kind.TIGER, tigerCount)),
+                    Map.of(
+                            Animal.Kind.MAMMOTH, mammothCount,
+                            Animal.Kind.AUROCHS, aurochsCount,
+                            Animal.Kind.DEER, deerCount,
+                            Animal.Kind.TIGER, tigerCount)),
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
                     adjacentMeadow.majorityOccupants(),
                     adjacentMeadow.tileIds()));
