@@ -27,7 +27,7 @@ public class DecksUI {
 
         StackPane nextTile = new StackPane();
         nextTile.setId("next-tile");
-        ImageView tileToPlaceView = new ImageView();
+        ImageView tileToPlaceView = new ImageView(ImageLoader.largeImageForTile(tile.getValue().id()));
         Text tileToPlaceText = new Text(textToShow.getValue());
 
 
@@ -62,10 +62,12 @@ public class DecksUI {
             tilesLeftMenhir.setText(newTilesLeft.toString());
         });
 
-        textToShow.addListener((o, oldText, newText) -> {
-            ObservableValue<Boolean> isEmpty = textToShow.map(String::isEmpty);
-            tileToPlaceText.visibleProperty().bind(isEmpty);
-        });
+        ObservableValue<Boolean> isNotEmpty = textToShow.map(s -> !s.isEmpty());
+        tileToPlaceText.textProperty().bind(textToShow);
+        tileToPlaceText.visibleProperty().bind(isNotEmpty);
+        tileToPlaceView.visibleProperty().bind(tileToPlaceText.visibleProperty().not());
+
+        tileToPlaceText.setOnMouseClicked(event -> handler.accept(null));
 
         tileBox.getChildren().addAll(normalTilePane, menhirTilePane);
         nextTile.getChildren().addAll(tileToPlaceView, tileToPlaceText);

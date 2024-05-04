@@ -14,8 +14,9 @@ public record PlacedTile(Tile tile, PlayerColor placer, Rotation rotation, Pos p
     /**
      * Constructor for the PlacedTile record.
      * Checks that the tile, rotation, and position are not null.
+     *
      * @throws IllegalArgumentException if the tile, rotation, or position is null
-     * @throws NullPointerException if the tile, rotation, or position is null
+     * @throws NullPointerException     if the tile, rotation, or position is null
      */
     public PlacedTile {
         if (tile == null || rotation == null || pos == null) {
@@ -148,7 +149,7 @@ public record PlacedTile(Tile tile, PlayerColor placer, Rotation rotation, Pos p
      * @return a set of all potential occupants
      */
     public Set<Occupant> potentialOccupants() {
-        Set <Occupant> result = new HashSet<>();
+        Set<Occupant> result = new HashSet<>();
         if (this.placer == null) {
             return result;
         } else {
@@ -166,37 +167,37 @@ public record PlacedTile(Tile tile, PlayerColor placer, Rotation rotation, Pos p
         }
     }
 
-    /**
-     * Returns a new PlacedTile with the given occupant.
-     *
-     * @param occupant the occupant to add
-     * @return a new PlacedTile with the given occupant
-     * @throws IllegalArgumentException if the current occupant is not null
-     */
-    public PlacedTile withOccupant(Occupant occupant) {
-        Preconditions.checkArgument(this.occupant == null);
-        return new PlacedTile(this.tile, this.placer, this.rotation, this.pos, occupant);
-    }
-
-    /**
-     * Returns a new PlacedTile with no occupant.
-     *
-     * @return a new PlacedTile with no occupant
-     */
-    public PlacedTile withNoOccupant() {
-        return new PlacedTile(this.tile, this.placer, this.rotation, this.pos);
-    }
-
-    /**
-     * Returns the id of the zone occupied by the given occupant kind.
-     *
-     * @param occupantKind the kind of occupant to check
-     * @return the id of the zone occupied by the given occupant kind, or -1 if no such occupant exists
-     */
-    public int idOfZoneOccupiedBy(Occupant.Kind occupantKind) {
-        if (occupant == null || occupant.kind() != occupantKind) {
-            return -1;
+        /**
+         * Returns a new PlacedTile with the given occupant.
+         *
+         * @param occupant the occupant to add
+         * @return a new PlacedTile with the given occupant
+         * @throws IllegalArgumentException if the current occupant is not null
+         */
+        public PlacedTile withOccupant (Occupant occupant){
+            Preconditions.checkArgument(this.occupant == null);
+            return new PlacedTile(this.tile, this.placer, this.rotation, this.pos, occupant);
         }
-        return occupant.zoneId();
+
+        /**
+         * Returns a new PlacedTile with no occupant.
+         *
+         * @return a new PlacedTile with no occupant
+         */
+        public PlacedTile withNoOccupant () {
+            return new PlacedTile(this.tile, this.placer, this.rotation, this.pos);
+        }
+
+        /**
+         * Returns the id of the zone occupied by the given occupant kind.
+         *
+         * @param occupantKind the kind of occupant to check
+         * @return the id of the zone occupied by the given occupant kind, or -1 if no such occupant exists
+         */
+        public int idOfZoneOccupiedBy (Occupant.Kind occupantKind){
+            if (occupant == null || occupant.kind() != occupantKind) {
+                return -1;
+            }
+            return occupant.zoneId();
+        }
     }
-}

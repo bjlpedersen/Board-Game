@@ -13,10 +13,16 @@ public class ImageLoader {
     private ImageLoader() {}
 
     public static Image normalImageForTile(int tileId) {
+        if (tileId < 10) {
+            return new Image(STR. "/256/0\{ tileId }.jpg" );
+        }
         return new Image(STR."/256/\{tileId}.jpg");
     }
 
     public static Image largeImageForTile(int tileId) {
+        if (tileId < 10) {
+            return new Image(STR."/512/0\{tileId}.jpg");
+        }
         return new Image(STR."/512/\{tileId}.jpg");
     }
 }

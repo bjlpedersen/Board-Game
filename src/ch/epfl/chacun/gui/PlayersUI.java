@@ -20,9 +20,7 @@ public class PlayersUI {
         generalBox.setId("players");
 
         ObservableValue<PlayerColor> currentPlayer = obsGameState.map(GameState::currentPlayer);
-        ObservableValue<Map<PlayerColor, Integer>> points = obsGameState.map(gameState -> {
-            return gameState.messageBoard().points();
-        });
+        ObservableValue<Map<PlayerColor, Integer>> points = obsGameState.map(gameState -> gameState.messageBoard().points());
 
         for (PlayerColor player : obsGameState.getValue().players()) {
             TextFlow occupant = new TextFlow();
@@ -46,7 +44,7 @@ public class PlayersUI {
 
             for (Occupant.Kind o : Set.of(Occupant.Kind.HUT, Occupant.Kind.PAWN)) {
                 for (int i = 0; i < Occupant.occupantsCount(o); ++i) {
-                    Node occ = Icon.newFor(ColorMap.fillColor(player), o);
+                    Node occ = Icon.newFor(player, o);
                     int finalI = i;
                     ObservableValue<Double> opacity = obsGameState.map(gameState ->
                         gameState.freeOccupantsCount(player, o) < finalI ? 0.1 : 1);
