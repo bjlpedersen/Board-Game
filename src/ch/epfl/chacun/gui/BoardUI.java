@@ -3,7 +3,9 @@ package ch.epfl.chacun.gui;
 import ch.epfl.chacun.*;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -103,6 +105,7 @@ public class BoardUI {
                 int finalY = y;
                 int finalX = x;
                 tileToPlace.addListener((o, oldVal, newVal) -> {
+
                     CellData cellData = new CellData(emptyTileImage, Rotation.NONE, null);
                     ObservableValue<CellData> obsCellData = Bindings.createObjectBinding(() -> {
                         return cellData.bindCellData(
@@ -113,24 +116,28 @@ public class BoardUI {
                                 isHovered,
                                 highlightedTiles,
                                 state,
+                                rot,
                                 rotateTile,
                                 placeTile);
-                    }, isLeftMousePressed, isRightMousePressed, isShiftPressed, isHovered, highlightedTiles, state);
+                    }, isLeftMousePressed, isRightMousePressed, isShiftPressed, isHovered, highlightedTiles, state, rot);
 
                     cellImage.imageProperty().bind(obsCellData.map(c -> c.backgroundImage.getImage()));
+
+                    DoubleProperty oldRotation = new SimpleDoubleProperty();
+                    cellImage.rotateProperty().bind(obsCellData.map(c -> {
+                        double totalRotation = (oldRotation.get() + c.rotation.degreesCW()) % 360;
+                        oldRotation.set(totalRotation);
+                        rot.getValue().add(c.rotation);
+//                        rot. intToRotation(totalRotation);
+                        return totalRotation;
+                    }));
+
                     cellImage.effectProperty().bind(obsCellData.map(c -> {
                         Blend blend = new Blend(BlendMode.SRC_OVER, null, c.veilColor);
                         blend.setOpacity(0.5);
                         return blend;
                     }));
-//                    DoubleProperty oldRotation = new SimpleDoubleProperty();
-//                    cellImage.rotateProperty().bind(Bindings.createDoubleBinding(() -> {
-//                        double newRotation = rotationToInt(obsCellData.getValue().rotation());
-//                        double totalRotation = oldRotation.get() + newRotation;
-//                        oldRotation.set(totalRotation); // Update the old rotation
-//                        return totalRotation;
-//                    }, obsCellData));
-                    cellImage.rotateProperty().bind(obsCellData.map(c -> rotationToInt(c.rotation())));
+//                    cellImage.rotateProperty().bind(obsCellData.map(c -> c.rotation().degreesCW()));
                 });
 
 
@@ -182,18 +189,6 @@ public class BoardUI {
         return result;
     }
 
-    private static int rotationToInt(Rotation r) {
-        if (r == null) {
-            return 0;
-        }
-        return switch (r) {
-            case NONE -> 0;
-            case RIGHT -> 90;
-            case HALF_TURN -> 180;
-            case LEFT -> 270;
-        };
-    }
-
 
     private record CellData(ImageView backgroundImage, Rotation rotation, ColorInput veilColor) {
 
@@ -204,6 +199,7 @@ public class BoardUI {
                                      BooleanProperty isHovered,
                                      ObservableValue<Set<Integer>> highlightedTiles,
                                      ObservableValue<GameState> state,
+                                     ObservableValue<Rotation> rot,
                                      Consumer<Rotation> rotateTile,
                                      Consumer<Pos> placeTile
                                      ) {
@@ -217,7 +213,7 @@ public class BoardUI {
 
             if (gameState.board().tileAt(pos) == null) {
                 ColorInput veil = null ;
-                Rotation rotation1 = rotation;
+                Rotation rotation1 = rot.getValue();
                 Set<Pos> insertionPositions = gameState.board().insertionPositions();
                 if (insertionPositions.contains(pos)) {
                     if (gameState.nextAction() == GameState.Action.PLACE_TILE && isHovered.get()) {

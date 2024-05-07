@@ -1,0 +1,124 @@
+package ch.epfl.chacun;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+
+public class ActionEncoder {
+
+    private ActionEncoder() {}
+
+    public static StateAction withPlacedTile(GameState state, PlacedTile placedTile) {
+        StringBuilder action = new StringBuilder();
+        List<Pos> insertionPositions = new ArrayList<>(state.board().insertionPositions().stream().toList());
+        insertionPositions.sort(Comparator.comparingInt(Pos::x).thenComparingInt(Pos::y));
+        int indexOfPos = insertionPositions.indexOf(placedTile.pos());
+        action.append(Integer.toBinaryString(indexOfPos));
+        switch (placedTile.rotation()) {
+            case NONE -> action.append(0b00);
+            case RIGHT -> action.append(0b01);
+            case HALF_TURN -> action.append(0b10);
+            case LEFT -> action.append(0b11);
+        }
+        return new StateAction(state.withPlacedTile(placedTile), Base32.encodeBits10(Integer.parseInt(action.toString())));
+    }
+
+    public static StateAction withNewOccupant(GameState state, Occupant occ) {
+        if (occ == null) {
+            return new StateAction(state, "11111");
+        }
+        StringBuilder action = new StringBuilder();
+        if (occ.kind() == Occupant.Kind.PAWN) action.append(0b0);
+        else action.append(0b1);
+        int zoneId = occ.zoneId();
+        action.append(Integer.toBinaryString(zoneId));
+        return new StateAction(state.withNewOccupant(occ), Base32.encodeBits5(Integer.parseInt(action.toString())));
+    }
+
+    public static StateAction withOccupantRemoved(GameState state, Occupant occ) {
+        if (occ == null) {
+            return new StateAction(state , "11111");
+        }
+        StringBuilder action = new StringBuilder();
+        List<Occupant> boardOccupants = state.board().occupants().stream().toList();
+        boardOccupants.sort(Comparator.comparingInt(Occupant::zoneId));
+        int occIndex = boardOccupants.indexOf(occ);
+        action.append(Integer.toBinaryString(occIndex));
+        return new StateAction(state.withOccupantRemoved(occ), Base32.encodeBits5(Integer.parseInt(action.toString())));
+    }
+
+    public static StateAction decodeAndApply(GameState state, String action) {
+        try {
+            isInvalidAction(state, action);
+        } catch (InvalidActionMessageException e) {
+            switch (state.nextAction()) {
+                case PLACE_TILE -> {
+                    int actionDecoded = Base32.decode(action);
+                    String actionDecodedString = Integer.toBinaryString(actionDecoded);
+                    List<Pos> insertionPositions = new ArrayList<>(state.board().insertionPositions().stream().toList());
+                    insertionPositions.sort(Comparator.comparingInt(Pos::x).thenComparingInt(Pos::y));
+                    Pos pos = insertionPositions.get(Integer.parseInt(actionDecodedString.substring(0, 7), 2));
+                }
+            }
+        }
+        return null;
+    }
+
+    private static void isInvalidAction(GameState state, String action) throws InvalidActionMessageException {
+        if (!Base32.isValid(action)) throw new InvalidActionMessageException("Character in action does not fit Base32");
+        int newAction = Base32.decode(action);
+        action = Integer.toBinaryString(newAction);
+        switch (state.nextAction()) {
+            case PLACE_TILE -> {
+                if (action.length() != 8) throw new InvalidActionMessageException("The message does not have the correct length");
+                if (Integer.parseInt(action.substring(0, 8), 10) > 190 ||
+                Integer.parseInt(action.substring(0, 8), 2) < 0) throw new InvalidActionMessageException("The fringe position is out of bounds");
+            }
+            case OCCUPY_TILE -> {
+                if (action.length() != 5) throw new InvalidActionMessageException("The message does not have the correct length");
+                if (Integer.parseInt(action.substring(1, 5)) > 9 ||
+                        Integer.parseInt(action.substring(1, 5)) < 0 &&
+                        !action.equals("11111")) throw new InvalidActionMessageException("The zone id is out of bounds");
+            }
+            case RETAKE_PAWN -> {
+                if (action.length() != 5) throw new InvalidActionMessageException("The message does not have the correct length");
+                if (Integer.parseInt(action) > 24 ||
+                        Integer.parseInt(action) < 0 &&
+                        !action.equals("11111")) throw new InvalidActionMessageException("the occupant index is out of bounds");
+            }
+            default -> throw new InvalidActionMessageException("The next action is invalid");
+        }
+    }
+
+
+    public static class StateAction {
+        private final GameState gameState;
+        private final String encodedAction;
+
+        public StateAction(GameState gameState, String encodedAction) {
+            this.gameState = gameState;
+            this.encodedAction = encodedAction;
+        }
+
+        public GameState getGameState() {
+            return gameState;
+        }
+
+        public String getEncodedAction() {
+            return encodedAction;
+        }
+    }
+
+    public static class InvalidActionMessageException extends Exception {
+        public InvalidActionMessageException(String message) {
+            super(message);
+        }
+
+        public InvalidActionMessageException() {
+            super();
+        }
+    }
+
+}

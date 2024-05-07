@@ -27,7 +27,13 @@ public class DecksUI {
 
         StackPane nextTile = new StackPane();
         nextTile.setId("next-tile");
-        ImageView tileToPlaceView = new ImageView(ImageLoader.largeImageForTile(tile.getValue().id()));
+        ImageView tileToPlaceView = new ImageView();
+        tileToPlaceView.setFitHeight(ImageLoader.LARGE_TILE_FIT_SIZE);
+        tileToPlaceView.setFitWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
+
+        if (tile.getValue() != null) {
+            tileToPlaceView.setImage(ImageLoader.largeImageForTile(tile.getValue().id()));
+        }
         Text tileToPlaceText = new Text(textToShow.getValue());
 
 

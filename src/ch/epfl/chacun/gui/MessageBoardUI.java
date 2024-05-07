@@ -8,6 +8,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,9 +18,7 @@ public class MessageBoardUI {
     private MessageBoardUI() {}
 
     public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessageBoard, ObjectProperty<Set<Integer>> observableTileIds) {
-        ScrollPane messageScrollPane = new ScrollPane();
-        messageScrollPane.setId("message-board");
-        messageScrollPane.getStylesheets().add("message-board.css");
+
         VBox box = new VBox();
 
         observableMessageBoard.addListener((o, oldObs, newObs) -> {
@@ -27,14 +26,24 @@ public class MessageBoardUI {
                 MessageBoard.Message currentMessage = newObs.get(i);
                 Text text = new Text(currentMessage.text());
                 text.setWrappingWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
-                text.setOnMouseEntered(mouseEvent -> observableTileIds.getValue().addAll(currentMessage.tileIds()));
-                text.setOnMouseExited(mouseEvent -> observableTileIds.getValue().removeAll(currentMessage.tileIds()));
+                text.setOnMouseEntered(mouseEvent -> {
+                    Set<Integer> updatedObservableTileIds = new HashSet<>(observableTileIds.getValue());
+                    updatedObservableTileIds.addAll(currentMessage.tileIds());
+                    observableTileIds.set(updatedObservableTileIds);
+                });
+                text.setOnMouseExited(mouseEvent -> {
+                    Set<Integer> updatedObservableTileIds = new HashSet<>(observableTileIds.getValue());
+                    updatedObservableTileIds.removeAll(currentMessage.tileIds());
+                    observableTileIds.set(updatedObservableTileIds);
+                });
 
                 box.getChildren().add(text);
             }
         });
 
-        messageScrollPane.getChildrenUnmodifiable().add(box);
+        ScrollPane messageScrollPane = new ScrollPane(box);
+        messageScrollPane.setId("message-board");
+        messageScrollPane.getStylesheets().add("message-board.css");
         runLater(() -> messageScrollPane.setVvalue(1));
         return messageScrollPane;
     }
