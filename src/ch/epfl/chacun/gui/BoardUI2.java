@@ -25,17 +25,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class BoardUI {
-    private BoardUI() {}
+public class BoardUI2 {
+    private BoardUI2() {}
 
     public static Node create(int reach,
-                              ObservableValue<GameState> state,
-                              ObservableValue<Rotation> rot,
-                              ObservableValue<Set<Occupant>> visibleOccupants,
-                              ObservableValue<Set<Integer>> highlightedTiles,
-                              Consumer<Rotation> rotateTile,
-                              Consumer<Pos> placeTile,
-                              Consumer<Occupant> selectOcc) {
+                      ObservableValue<GameState> state,
+                      ObservableValue<Rotation> rot,
+                      ObservableValue<Set<Occupant>> visibleOccupants,
+                      ObservableValue<Set<Integer>> highlightedTiles,
+                      Consumer<Rotation> rotateTile,
+                      Consumer<Pos> placeTile,
+                      Consumer<Occupant> selectOcc) {
 
         GridPane boardGrid = new GridPane();
         boardGrid.setId("board-grid");
@@ -119,13 +119,27 @@ public class BoardUI {
                     }, isLeftMousePressed, isRightMousePressed, isShiftPressed, isHovered, highlightedTiles, state);
 
                     cellImage.imageProperty().bind(obsCellData.map(c -> c.backgroundImage.getImage()));
-                    cellImage.rotateProperty().bind(obsCellData.map(c -> c.getRotation().degreesCW() + rot.getValue().degreesCW()));
+
+//                    DoubleProperty oldRotation = new SimpleDoubleProperty();
+//                    cellImage.rotateProperty().bind(obsCellData.map(c -> {
+//                        double totalRotation = (oldRotation.get() + c.rotation.degreesCW()) % 360;
+//                        oldRotation.set(totalRotation);
+//                        rot.getValue().add(c.rotation);
+////                        cellData.rotation.add(cellData.rotation.negated());
+////                        cellData.rotation.add(angleToRotation((int) totalRotation));
+//                        return totalRotation;
+//                    }));
+
+
+                    cellImage.rotateProperty().bind(obsCellData.map(c -> c.rotation().degreesCW() + rot.getValue().degreesCW()));
+
                     cellImage.effectProperty().bind(obsCellData.map(c -> {
                         Blend blend = new Blend(BlendMode.SRC_OVER, null, c.veilColor);
                         blend.setOpacity(0.5);
                         return blend;
                     }));
                 });
+
 
                 // Manages the canceled animal markers and the occupant Images of each cell if the cell contains a tile.
                 placedTile.addListener((o, oldVal, newVal) -> {
@@ -175,24 +189,18 @@ public class BoardUI {
         return result;
     }
 
-    public static class CellData {
-        private ImageView backgroundImage;
-        private Rotation rotation;
-        private ColorInput veilColor;
-
-        public CellData(ImageView backgroundImage, Rotation rotation, ColorInput veilColor) {
-            this.backgroundImage = backgroundImage;
-            this.rotation = rotation;
-            this.veilColor = veilColor;
+    private static Rotation angleToRotation(int angle) throws IllegalArgumentException{
+        switch (angle) {
+            case 0: return Rotation.NONE;
+            case 90: return Rotation.RIGHT;
+            case 180: return Rotation.HALF_TURN;
+            case 270: return Rotation.LEFT;
+            default: throw new IllegalArgumentException();
         }
+    }
 
-        public Rotation getRotation() {
-            return rotation;
-        }
 
-        public void setRotation(Rotation rotation) {
-            this.rotation = rotation;
-        }
+    private record CellData(ImageView backgroundImage, Rotation rotation, ColorInput veilColor) {
 
         public CellData bindCellData(Pos pos,
                                      BooleanProperty leftMouseClicked,
@@ -203,7 +211,7 @@ public class BoardUI {
                                      ObservableValue<GameState> state,
                                      Consumer<Rotation> rotateTile,
                                      Consumer<Pos> placeTile
-        ) {
+                                     ) {
 
             WritableImage emptyTile = new WritableImage(1, 1);
             emptyTile.getPixelWriter().setColor(0, 0, Color.gray(0.98));
@@ -214,20 +222,21 @@ public class BoardUI {
 
             if (gameState.board().tileAt(pos) == null) {
                 ColorInput veil = null ;
+                Rotation rotation1 = rotation;
                 Set<Pos> insertionPositions = gameState.board().insertionPositions();
                 if (insertionPositions.contains(pos)) {
                     if (gameState.nextAction() == GameState.Action.PLACE_TILE && isHovered.get()) {
                         ImageView tileImage = new ImageView(ImageLoader.normalImageForTile(tileToPlace.id()));
 
                         if (shiftClicked.get() && rightMouseClicked.get()) {
-                            rotation = rotation.add(Rotation.LEFT);
+                            rotation1 = rotation1.add(Rotation.LEFT);
                             rotateTile.accept(Rotation.LEFT);
-                        } else if (!shiftClicked.get() && rightMouseClicked.get()) {
-                            rotation = rotation.add(Rotation.RIGHT);
+                        } else if (rightMouseClicked.get()) {
+                            rotation1 = rotation1.add(Rotation.RIGHT);
                             rotateTile.accept(Rotation.RIGHT);
                         }
 
-                        if (!gameState.board().canAddTile(new PlacedTile(tileToPlace, gameState.currentPlayer(), rotation, pos))) {
+                        if (!gameState.board().canAddTile(new PlacedTile(tileToPlace, gameState.currentPlayer(), rotation1, pos))) {
                             veil = new ColorInput(
                                     pos.x(),
                                     pos.y(),
@@ -235,11 +244,11 @@ public class BoardUI {
                                     ImageLoader.NORMAL_TILE_FIT_SIZE,
                                     Color.WHITE);
                         }
-                        if (gameState.board().canAddTile(new PlacedTile(tileToPlace, gameState.currentPlayer(), rotation, pos)) &&
+                        if (gameState.board().canAddTile(new PlacedTile(tileToPlace, gameState.currentPlayer(), rotation1, pos)) &&
                                 leftMouseClicked.get()) {
                             placeTile.accept(pos);
                         }
-                        return new CellData(tileImage, rotation, veil);
+                        return new CellData(tileImage, rotation1, veil);
                     } else {
                         veil = new ColorInput(
                                 pos.x(),
@@ -247,7 +256,7 @@ public class BoardUI {
                                 ImageLoader.NORMAL_TILE_FIT_SIZE,
                                 ImageLoader.NORMAL_TILE_FIT_SIZE,
                                 ColorMap.fillColor(gameState.currentPlayer())); //TODO check if this line causes any problems
-                        return new CellData(emptyTileImage, rotation, veil);
+                        return new CellData(emptyTileImage, rotation1, veil);
                     }
                 }
             } else {

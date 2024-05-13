@@ -53,13 +53,34 @@ public class ActionEncoder {
         try {
             isInvalidAction(state, action);
         } catch (InvalidActionMessageException e) {
+            int actionDecoded = Base32.decode(action);
+            String actionDecodedString = Integer.toBinaryString(actionDecoded);
             switch (state.nextAction()) {
                 case PLACE_TILE -> {
-                    int actionDecoded = Base32.decode(action);
-                    String actionDecodedString = Integer.toBinaryString(actionDecoded);
                     List<Pos> insertionPositions = new ArrayList<>(state.board().insertionPositions().stream().toList());
                     insertionPositions.sort(Comparator.comparingInt(Pos::x).thenComparingInt(Pos::y));
-                    Pos pos = insertionPositions.get(Integer.parseInt(actionDecodedString.substring(0, 7), 2));
+                    Pos pos = insertionPositions.get(Integer.parseInt(actionDecodedString.substring(0, 8), 2));
+                    Rotation rot = Rotation.ALL.get(Integer.parseInt(actionDecodedString.substring(8, 11)));
+                    PlacedTile placedTile = new PlacedTile(state.tileToPlace(), state.currentPlayer(), rot, pos, null);
+                    return new StateAction(state.withPlacedTile(placedTile), action);
+                }
+                case OCCUPY_TILE -> {
+                    if (actionDecodedString.equals("11111")) return new StateAction(state, action);
+                    int zoneId = Integer.parseInt(actionDecodedString.substring(1, 5), 2);
+                    if (actionDecodedString.charAt(0) == 1) {
+                        Occupant occ = new Occupant(Occupant.Kind.HUT, zoneId);
+                        return new StateAction(state.withNewOccupant(occ), action);
+                    }
+                    Occupant occ = new Occupant(Occupant.Kind.PAWN, zoneId);
+                    return new StateAction(state.withNewOccupant(occ), action);
+                }
+                case RETAKE_PAWN -> {
+                    if (actionDecodedString.equals("11111")) return new StateAction(state, action);
+                    int pawnIndex = Integer.parseInt(actionDecodedString, 2);
+                    List<Occupant> allOccupants = new ArrayList<>(state.board().occupants().stream().toList());
+                    allOccupants.sort(Comparator.comparingInt(Occupant::zoneId));
+                    Occupant occ = allOccupants.get(pawnIndex);
+                    return new StateAction(state.withOccupantRemoved(occ), action);
                 }
             }
         }
@@ -67,9 +88,9 @@ public class ActionEncoder {
     }
 
     private static void isInvalidAction(GameState state, String action) throws InvalidActionMessageException {
-        if (!Base32.isValid(action)) throw new InvalidActionMessageException("Character in action does not fit Base32");
         int newAction = Base32.decode(action);
         action = Integer.toBinaryString(newAction);
+        if (!Base32.isValid(action)) throw new InvalidActionMessageException("Character in action does not fit Base32");
         switch (state.nextAction()) {
             case PLACE_TILE -> {
                 if (action.length() != 8) throw new InvalidActionMessageException("The message does not have the correct length");

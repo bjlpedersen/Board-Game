@@ -1,9 +1,7 @@
 package ch.epfl.chacun.UITests;
 
 import ch.epfl.chacun.*;
-import ch.epfl.chacun.gui.BoardUI;
-import ch.epfl.chacun.gui.BoardUI2;
-
+import ch.epfl.chacun.gui.PlayersUI;
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
@@ -11,14 +9,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class BoardUITest extends Application {
-    public static void main(String[] args) {launch(args);}
+public final class ActionsUITest extends Application {
+    public static void main(String[] args) { launch(args); }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         var playerNames = Map.of(PlayerColor.RED, "Rose",
                 PlayerColor.BLUE, "Bernard");
         var playerColors = playerNames.keySet().stream()
@@ -39,27 +36,10 @@ public final class BoardUITest extends Application {
                         tileDecks,
                         textMaker);
 
-        var tileToPlaceRotationP =
-                new SimpleObjectProperty<>(Rotation.NONE);
-        var visibleOccupantsP =
-                new SimpleObjectProperty<>(Set.<Occupant>of());
-        var highlightedTilesP =
-                new SimpleObjectProperty<>(Set.<Integer>of());
-
         var gameStateO = new SimpleObjectProperty<>(gameState);
-        var boardNode = BoardUI
-                .create(1,
-                        gameStateO,
-                        tileToPlaceRotationP,
-                        visibleOccupantsP,
-                        highlightedTilesP,
-                        r -> System.out.println("Rotate: " + r),
-                        t -> System.out.println("Place: " + t),
-                        o -> System.out.println("Select: " + o));
 
-        gameStateO.set(gameStateO.get().withStartingTilePlaced());
-
-        var rootNode = new BorderPane(boardNode);
+        var playersNode = PlayersUI.create(gameStateO, textMaker);
+        var rootNode = new BorderPane(playersNode);
         primaryStage.setScene(new Scene(rootNode));
 
         primaryStage.setTitle("ChaCuN test");
