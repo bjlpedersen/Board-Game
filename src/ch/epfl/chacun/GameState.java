@@ -426,7 +426,8 @@ public record GameState(List<PlayerColor> players, TileDecks tileDecks, Tile til
             Zone.Meadow specialPowerZone = (Zone.Meadow) tile.specialPowerZone();
             newMessageBoard = newMessageBoard.withScoredHuntingTrap(
                     currentPlayer(),
-                    newBoard.adjacentMeadow(tile.pos(), specialPowerZone));
+                    newBoard.adjacentMeadow(tile.pos(), specialPowerZone),
+                    this.board.cancelledAnimals());
 
             newBoard = newBoard.withMoreCancelledAnimals(Area.animals(
                     newBoard.adjacentMeadow(tile.pos(), specialPowerZone),

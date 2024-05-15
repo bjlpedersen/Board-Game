@@ -108,8 +108,8 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * @param scorer the player who scored
      * @return A new message board with the added message / same message board.
      */
-    public MessageBoard withScoredHuntingTrap(PlayerColor scorer, Area<Zone.Meadow> adjacentMeadow) {
-        Set<Animal> animals = Area.animals(adjacentMeadow, Set.of());
+    public MessageBoard withScoredHuntingTrap(PlayerColor scorer, Area<Zone.Meadow> adjacentMeadow, Set<Animal> deletedAnimals) {
+        Set<Animal> animals = Area.animals(adjacentMeadow, deletedAnimals);
         int aurochsCount = 0;
         int deerCount = 0;
         int mammothCount = 0;

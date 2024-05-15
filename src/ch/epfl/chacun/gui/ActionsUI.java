@@ -20,7 +20,8 @@ public class ActionsUI {
 
         List<String> actions = obsActions.getValue();
         Text text = new Text();
-        for (int i = actions.size() - 4; i < actions.size(); ++i) {
+        int start = Math.max(0, actions.size() - 4);
+        for (int i = start; i < actions.size(); ++i) {
             if (i != actions.size() - 1) {
                 text.setText(text.getText() + STR. "\{ i }:\{ actions.get(i) }, " );
             } else {

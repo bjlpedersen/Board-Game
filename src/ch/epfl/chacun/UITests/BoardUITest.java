@@ -2,7 +2,6 @@ package ch.epfl.chacun.UITests;
 
 import ch.epfl.chacun.*;
 import ch.epfl.chacun.gui.BoardUI;
-import ch.epfl.chacun.gui.BoardUI2;
 
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;

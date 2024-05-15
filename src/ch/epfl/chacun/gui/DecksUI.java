@@ -24,7 +24,6 @@ public class DecksUI {
         VBox generalBox = new VBox();
         generalBox.getStylesheets().add("decks.css");
 
-
         StackPane nextTile = new StackPane();
         nextTile.setId("next-tile");
         ImageView tileToPlaceView = new ImageView();
@@ -35,7 +34,6 @@ public class DecksUI {
             tileToPlaceView.setImage(ImageLoader.largeImageForTile(tile.getValue().id()));
         }
         Text tileToPlaceText = new Text(textToShow.getValue());
-
 
         HBox tileBox = new HBox();
         tileBox.setId("decks");
