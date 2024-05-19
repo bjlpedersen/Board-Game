@@ -11,30 +11,36 @@ public class ActionEncoder {
     private ActionEncoder() {}
 
     public static StateAction withPlacedTile(GameState state, PlacedTile placedTile) {
-        StringBuilder action = new StringBuilder();
         List<Pos> insertionPositions = new ArrayList<>(state.board().insertionPositions().stream().toList());
         insertionPositions.sort(Comparator.comparingInt(Pos::x).thenComparingInt(Pos::y));
         int indexOfPos = insertionPositions.indexOf(placedTile.pos());
-        action.append(Integer.toBinaryString(indexOfPos));
-        switch (placedTile.rotation()) {
-            case NONE -> action.append(0b00);
-            case RIGHT -> action.append(0b01);
-            case HALF_TURN -> action.append(0b10);
-            case LEFT -> action.append(0b11);
+        if (indexOfPos < 0 || indexOfPos > 255) {
+            throw new IllegalArgumentException("Invalid position index: " + indexOfPos);
         }
-        return new StateAction(state.withPlacedTile(placedTile), Base32.encodeBits10(Integer.parseInt(action.toString())));
+
+        int rotationBits;
+        switch (placedTile.rotation()) {
+            case NONE -> rotationBits = 0b00;
+            case RIGHT -> rotationBits = 0b01;
+            case HALF_TURN -> rotationBits = 0b10;
+            case LEFT -> rotationBits = 0b11;
+            default -> throw new IllegalArgumentException("Invalid rotation");
+        }
+
+        int action = (indexOfPos << 2) | rotationBits;
+        return new StateAction(state.withPlacedTile(placedTile), Base32.encodeBits10(action));
     }
 
     public static StateAction withNewOccupant(GameState state, Occupant occ) {
         if (occ == null) {
             return new StateAction(state, "11111");
         }
-        StringBuilder action = new StringBuilder();
-        if (occ.kind() == Occupant.Kind.PAWN) action.append(0b0);
-        else action.append(0b1);
-        int zoneId = occ.zoneId();
-        action.append(Integer.toBinaryString(zoneId));
-        return new StateAction(state.withNewOccupant(occ), Base32.encodeBits5(Integer.parseInt(action.toString())));
+        int action = 0;
+        if (occ.kind() != Occupant.Kind.PAWN) {
+            action |= 1 << 4; // Set the most significant bit if the occupant is not a pawn
+        }
+        action |= (occ.zoneId() % 10) & 0b1111; // Set the four least significant bits to the zoneId
+        return new StateAction(state.withNewOccupant(occ), Base32.encodeBits5(action));
     }
 
     public static StateAction withOccupantRemoved(GameState state, Occupant occ) {
@@ -54,19 +60,25 @@ public class ActionEncoder {
             isInvalidAction(state, action);
         } catch (InvalidActionMessageException e) {
             int actionDecoded = Base32.decode(action);
-            String actionDecodedString = Integer.toBinaryString(actionDecoded);
+            final String formatOccupyAndRetake = String.format("%05d",
+                    Integer.parseInt(Integer.toBinaryString(actionDecoded)));
+
             switch (state.nextAction()) {
                 case PLACE_TILE -> {
+                    String actionDecodedBinary = Integer.toBinaryString(actionDecoded);
+                    String actionDecodedString = String.format("%10s", actionDecodedBinary).replace(' ', '0');
                     List<Pos> insertionPositions = new ArrayList<>(state.board().insertionPositions().stream().toList());
                     insertionPositions.sort(Comparator.comparingInt(Pos::x).thenComparingInt(Pos::y));
                     Pos pos = insertionPositions.get(Integer.parseInt(actionDecodedString.substring(0, 8), 2));
-                    Rotation rot = Rotation.ALL.get(Integer.parseInt(actionDecodedString.substring(8, 11)));
+                    Rotation rot = Rotation.ALL.get(Integer.parseInt(actionDecodedString.substring(8, 10), 2));
                     PlacedTile placedTile = new PlacedTile(state.tileToPlace(), state.currentPlayer(), rot, pos, null);
                     return new StateAction(state.withPlacedTile(placedTile), action);
                 }
                 case OCCUPY_TILE -> {
+                    String actionDecodedString = formatOccupyAndRetake;
                     if (actionDecodedString.equals("11111")) return new StateAction(state, action);
                     int zoneId = Integer.parseInt(actionDecodedString.substring(1, 5), 2);
+                    zoneId = zoneId + state.board().lastPlacedTile().id() * 10;
                     if (actionDecodedString.charAt(0) == 1) {
                         Occupant occ = new Occupant(Occupant.Kind.HUT, zoneId);
                         return new StateAction(state.withNewOccupant(occ), action);
@@ -75,6 +87,7 @@ public class ActionEncoder {
                     return new StateAction(state.withNewOccupant(occ), action);
                 }
                 case RETAKE_PAWN -> {
+                    String actionDecodedString = formatOccupyAndRetake;
                     if (actionDecodedString.equals("11111")) return new StateAction(state, action);
                     int pawnIndex = Integer.parseInt(actionDecodedString, 2);
                     List<Occupant> allOccupants = new ArrayList<>(state.board().occupants().stream().toList());

@@ -4,6 +4,7 @@ import ch.epfl.chacun.*;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -20,15 +21,35 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+/**
+ * This class provides a user interface for the board in the game.
+ * It cannot be instantiated.
+ *
+ * @author Bjork Pedersen (376143)
+ */
 public class BoardUI {
     private BoardUI() {}
 
+    /**
+     * Creates the game board UI component.
+     *
+     * @param reach The reach of the board.
+     * @param state The current game state.
+     * @param rot The current rotation state.
+     * @param visibleOccupants The set of visible occupants.
+     * @param highlightedTiles The set of highlighted tiles.
+     * @param rotateTile Consumer to handle tile rotation.
+     * @param placeTile Consumer to handle tile placement.
+     * @param selectOcc Consumer to handle occupant selection.
+     * @return The Node representing the game board UI.
+     */
     public static Node create(int reach,
                               ObservableValue<GameState> state,
-                              ObservableValue<Rotation> rot,
+                              SimpleObjectProperty<Rotation> rot,
                               ObservableValue<Set<Occupant>> visibleOccupants,
                               ObservableValue<Set<Integer>> highlightedTiles,
                               Consumer<Rotation> rotateTile,
@@ -51,8 +72,9 @@ public class BoardUI {
                 emptyTile.getPixelWriter().setColor(0, 0, Color.gray(0.98));
                 ImageView emptyTileImage = new ImageView(emptyTile);
 
-                ObservableValue<PlacedTile> placedTile = state.map(s -> s.board().lastPlacedTile());
-
+                int finalY = y;
+                int finalX = x;
+                Pos tilePos = new Pos(finalX, finalY);
 
                 // Add hover property listeners to the cell
                 BooleanProperty isHovered = new SimpleBooleanProperty();
@@ -77,9 +99,11 @@ public class BoardUI {
                 cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
                     if (event.getButton() == MouseButton.SECONDARY && !event.isAltDown()) {
                         isRightMousePressed.set(true);
+                        rotateTile.accept(Rotation.RIGHT);
                     } else if (event.getButton() == MouseButton.SECONDARY && event.isAltDown()) {
                         isOptionPressed.set(true);
                         isRightMousePressed.set(true);
+                        rotateTile.accept(Rotation.LEFT);
                     }
                 });
                 cell.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
@@ -91,11 +115,7 @@ public class BoardUI {
 
                 // Manages the background image, rotation and veil color of each cell.
                 ObservableValue<Tile> tileToPlace = state.map(GameState::tileToPlace);
-                int finalY = y;
-                int finalX = x;
-                Pos tilePos = new Pos(finalX, finalY);
                 tileToPlace.addListener((o, oldVal, newVal) -> {
-
                     CellData cellData = new CellData(emptyTileImage, rot.getValue(), null);
                     ObservableValue<CellData> obsCellData = Bindings.createObjectBinding(() -> {
                         return cellData.bindCellData(
@@ -105,6 +125,7 @@ public class BoardUI {
                                 isOptionPressed,
                                 isHovered,
                                 highlightedTiles,
+                                rot,
                                 state,
                                 rotateTile,
                                 placeTile);
@@ -119,54 +140,56 @@ public class BoardUI {
                     }));
 
                     // Manages the canceled animal markers and the occupant Images of each cell if the cell contains a tile.
-                    if (state.getValue().board().tileAt(tilePos) != null) {
-                        PlacedTile placedTile1 = state.getValue().board().tileAt(tilePos);
-                        PlayerColor occupantPlacerColor = state.getValue().board().tileAt(tilePos).placer();
-                        for (Occupant occ : placedTile1.potentialOccupants()) {
-                            if (occ.kind() == Occupant.Kind.HUT) {
+                    ObservableValue<PlacedTile> lastPlacedTile = state.map(g -> g.board().lastPlacedTile());
+                    lastPlacedTile.addListener((observableValue, LastPlaced, newLastPlaced) -> {
+                        if (state.getValue().board().tileAt(tilePos) != null &&
+                                state.getValue().board().tileAt(tilePos).equals(newLastPlaced)) {
+                            PlayerColor occupantPlacerColor = newLastPlaced.placer();
+                            Map<Occupant.Kind, String> occupantKindToString = Map.
+                                    of(Occupant.Kind.PAWN, "pawn_", Occupant.Kind.HUT, "hut_");
+
+                            for (Occupant occ : state.getValue().lastTilePotentialOccupants()) {
                                 Node occPath = Icon.newFor(occupantPlacerColor, occ.kind());
-                                occPath.setId(STR. "hut_\{ occ.zoneId() }" );
-                                occPath.visibleProperty().bind(visibleOccupants.map(occSet -> occSet.contains(occ)));
-                                occPath.setOnMouseClicked(e -> selectOcc.accept(occ));
-                                occPath.rotateProperty().bind(obsCellData.map(c -> c.rotation.negated().degreesCW()));
-                                cell.getChildren().add(occPath);
-                            } else {
-                                Node occPath = Icon.newFor(occupantPlacerColor, occ.kind());
-                                occPath.setId(STR. "pawn_\{ occ.zoneId() }" );
+                                occPath.setId(occupantKindToString.get(occ.kind()) + occ.zoneId());
                                 occPath.visibleProperty().bind(visibleOccupants.map(occSet -> occSet.contains(occ)));
                                 occPath.setOnMouseClicked(e -> selectOcc.accept(occ));
                                 occPath.rotateProperty().bind(obsCellData.map(c -> c.rotation.negated().degreesCW()));
                                 cell.getChildren().add(occPath);
                             }
-                        }
 
-                        for (Animal a : animalsInTile(placedTile1, state)) {
-                            ImageView crossedAnimal = new ImageView();
-                            crossedAnimal.setFitWidth(ImageLoader.MARKER_FIT_SIZE);
-                            crossedAnimal.setFitHeight(ImageLoader.MARKER_FIT_SIZE);
-                            crossedAnimal.setId(STR. "marker_\{ a.id() }" );
-                            crossedAnimal.getStyleClass().add("marker");
-                            crossedAnimal.visibleProperty().bind(state.map(s -> s.board().cancelledAnimals().contains(a)));
-                            crossedAnimal.rotateProperty().bind(obsCellData.map(c -> c.rotation.degreesCW()));
-                            cell.getChildren().add(crossedAnimal);
+                            for (Animal a : animalsInTile(newLastPlaced, state)) {
+                                ImageView crossedAnimal = new ImageView();
+                                crossedAnimal.setFitWidth(ImageLoader.MARKER_FIT_SIZE);
+                                crossedAnimal.setFitHeight(ImageLoader.MARKER_FIT_SIZE);
+                                crossedAnimal.setId(STR. "marker_\{ a.id() }" );
+                                crossedAnimal.getStyleClass().add("marker");
+                                crossedAnimal.visibleProperty().bind(state.map(s -> s.board().cancelledAnimals().contains(a)));
+                                crossedAnimal.rotateProperty().bind(obsCellData.map(c -> c.rotation.degreesCW()));
+                                cell.getChildren().add(crossedAnimal);
+                            }
                         }
-                    }
+                        });
 
 
                 });
-
-
                 boardGrid.add(cell, x + reach, y + reach);
             }
         }
         ScrollPane boardScrollPane = new ScrollPane(boardGrid);
         boardScrollPane.getStylesheets().add("board.css");
         boardScrollPane.setId("board-scroll-pane");
-        boardScrollPane.setVvalue(0);
-        boardScrollPane.setHvalue(0);
+        boardScrollPane.setVvalue(0.5);
+        boardScrollPane.setHvalue(0.5);
         return boardScrollPane;
     }
 
+    /**
+     * Returns a list of animals in the given tile.
+     *
+     * @param tile  The tile to check.
+     * @param state The current game state.
+     * @return A list of animals in the given tile.
+     */
     private static List<Animal> animalsInTile(PlacedTile tile, ObservableValue<GameState> state) {
         List<Animal> result = new ArrayList<>();
         for (Zone.Meadow meadow : tile.meadowZones()) {
@@ -175,31 +198,53 @@ public class BoardUI {
         return result;
     }
 
+    /**
+     * This class represents the data for a cell on the game board.
+     * It contains the background image, rotation, and veil color for the cell.
+     *
+     * @author Bjork Pedersen (376143)
+     */
     public static class CellData {
         private ImageView backgroundImage;
         private Rotation rotation;
         private ColorInput veilColor;
 
+        /**
+         * Constructs a new CellData object with the given background image, rotation, and veil color.
+         *
+         * @param backgroundImage the background image for the cell
+         * @param rotation the rotation of the cell
+         * @param veilColor the veil color for the cell
+         */
         public CellData(ImageView backgroundImage, Rotation rotation, ColorInput veilColor) {
             this.backgroundImage = backgroundImage;
             this.rotation = rotation;
             this.veilColor = veilColor;
         }
 
-        public Rotation getRotation() {
-            return rotation;
-        }
-
-        public void setRotation(Rotation rotation) {
-            this.rotation = rotation;
-        }
-
+        /**
+         * Binds the cell data to the given properties and observable values.
+         * This method handles the logic for updating the cell's image, rotation, and veil color based on the game
+         * state and user interactions.
+         *
+         * @param pos the position of the cell on the board
+         * @param leftMouseClicked a property that is true when the left mouse button is pressed
+         * @param rightMouseClicked a property that is true when the right mouse button is pressed
+         * @param optionClicked a property that is true when the option key is pressed
+         * @param isHovered a property that is true when the mouse is hovering over the cell
+         * @param highlightedTiles an observable value containing the set of highlighted tile IDs
+         * @param state an observable value containing the current game state
+         * @param rotateTile a consumer for handling tile rotation
+         * @param placeTile a consumer for handling tile placement
+         * @return a new CellData object with the updated properties
+         */
         public CellData bindCellData(Pos pos,
                                      BooleanProperty leftMouseClicked,
                                      BooleanProperty rightMouseClicked,
                                      BooleanProperty optionClicked,
                                      BooleanProperty isHovered,
                                      ObservableValue<Set<Integer>> highlightedTiles,
+                                     SimpleObjectProperty<Rotation> rot,
                                      ObservableValue<GameState> state,
                                      Consumer<Rotation> rotateTile,
                                      Consumer<Pos> placeTile
@@ -212,6 +257,7 @@ public class BoardUI {
             Tile tileToPlace = state.getValue().tileToPlace();
 
             if (gameState.board().tileAt(pos) == null) {
+                rotation = rot.getValue();
                 ColorInput veil = null ;
                 Set<Pos> insertionPositions = gameState.board().insertionPositions();
                 if (insertionPositions.contains(pos)) {
@@ -220,10 +266,8 @@ public class BoardUI {
 
                         if (optionClicked.get() && rightMouseClicked.get()) {
                             rotation = rotation.add(Rotation.LEFT);
-                            rotateTile.accept(Rotation.LEFT);
                         } else if (!optionClicked.get() && rightMouseClicked.get()) {
                             rotation = rotation.add(Rotation.RIGHT);
-                            rotateTile.accept(Rotation.RIGHT);
                         }
 
                         if (!gameState.board().canAddTile(new PlacedTile(tileToPlace, gameState.currentPlayer(), rotation, pos)) &&
@@ -238,12 +282,13 @@ public class BoardUI {
                         if (gameState.board().canAddTile(new PlacedTile(tileToPlace, gameState.currentPlayer(), rotation, pos)) &&
                                 leftMouseClicked.get()) {
                             placeTile.accept(pos);
+                            rot.set(Rotation.NONE);
                         }
                         return new CellData(tileImage, rotation, veil);
                     } else if (gameState.nextAction() == GameState.Action.PLACE_TILE) {
                         veil = new ColorInput(
-                                pos.x(),
-                                pos.y(),
+                                0,
+                                0,
                                 ImageLoader.NORMAL_TILE_FIT_SIZE,
                                 ImageLoader.NORMAL_TILE_FIT_SIZE,
                                 ColorMap.fillColor(gameState.currentPlayer())); //TODO check if this line causes any problems
@@ -259,8 +304,8 @@ public class BoardUI {
 
                 if (!highlightedTiles.getValue().contains(placedTile.id()) && !highlightedTiles.getValue().isEmpty()) {
                     veil = new ColorInput(
-                            pos.x(),
-                            pos.y(),
+                            0,
+                            0,
                             ImageLoader.NORMAL_TILE_FIT_SIZE,
                             ImageLoader.NORMAL_TILE_FIT_SIZE,
                             Color.BLACK);

@@ -38,30 +38,38 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * @throws IllegalArgumentException if the forest is not occupied
      */
     public MessageBoard withScoredForest(Area<Zone.Forest> forest) {
+        Objects.requireNonNull(forest, "Forest cannot be null");
         if (forest.isOccupied()) {
             List<Message> increasedMessages = new ArrayList<>(messages);
-            int points = Points.forClosedForest(forest.zones().size(), Area.mushroomGroupCount(forest));
+            int mushroomGroupCount = Area.mushroomGroupCount(forest);
+            int points = Points.forClosedForest(forest.zones().size(), mushroomGroupCount);
             if (points > 0) {
-                increasedMessages.add(new Message(textMaker.playersScoredForest(forest.majorityOccupants(),
-                        Points.forClosedForest(forest.zones().size(), Area.mushroomGroupCount(forest)),
-                        Area.mushroomGroupCount(forest),
-                        forest.tileIds().size()),
-                        points,
-                        forest.majorityOccupants(),
-                        forest.tileIds()));
+                increasedMessages.add(createMessage(forest, points, mushroomGroupCount));
             } else {
-                increasedMessages.add(new Message(textMaker.playersScoredForest(forest.majorityOccupants(),
-                        Points.forClosedForest(forest.zones().size(), Area.mushroomGroupCount(forest)),
-                        Area.mushroomGroupCount(forest),
-                        forest.tileIds().size()),
-                        0,
-                        Set.of(),
-                        forest.tileIds()));
+                increasedMessages.add(createMessage(forest, 0, mushroomGroupCount));
             }
             return new MessageBoard(textMaker, increasedMessages);
         } else {
             return this;
         }
+    }
+
+    /**
+     * Creates a new Message for a scored forest.
+     *
+     * @param forest The forest that has been scored.
+     * @param points The points scored for the forest.
+     * @param mushroomGroupCount The count of mushroom groups in the forest.
+     * @return A new Message instance with the provided details.
+     */
+    private Message createMessage(Area<Zone.Forest> forest, int points, int mushroomGroupCount) {
+        return new Message(textMaker.playersScoredForest(forest.majorityOccupants(),
+                points,
+                mushroomGroupCount,
+                forest.tileIds().size()),
+                points,
+                forest.majorityOccupants(),
+                forest.tileIds());
     }
 
 

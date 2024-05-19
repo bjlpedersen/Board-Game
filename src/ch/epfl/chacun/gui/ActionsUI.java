@@ -17,28 +17,36 @@ public class ActionsUI {
     public static Node create(ObservableValue<List<String>> obsActions, Consumer<String> executeAction) {
         HBox textBox = new HBox();
         textBox.getStylesheets().add("actions.css");
+        textBox.setId("actions");
 
-        List<String> actions = obsActions.getValue();
         Text text = new Text();
-        int start = Math.max(0, actions.size() - 4);
-        for (int i = start; i < actions.size(); ++i) {
-            if (i != actions.size() - 1) {
-                text.setText(text.getText() + STR. "\{ i }:\{ actions.get(i) }, " );
-            } else {
-                text.setText(text.getText() + STR. "\{ i }:\{ actions.get(i) }" );
+        obsActions.addListener((o, oldActions, newActions) -> {
+            text.setText(""); // clear the text
+            int start = Math.max(0, newActions.size() - 4);
+            for (int i = start; i < newActions.size(); ++i) {
+                if (i != newActions.size() - 1) {
+                    text.setText(text.getText() + (i + 1) + ":" + newActions.get(i) + ", ");
+                } else if (i == newActions.size() - 1 && newActions.size() > 1) {
+                    text.setText(text.getText() + (i + 1) + ":" + newActions.get(i));
+                } else {
+                    text.setText(text.getText() + (i + 1) + ":" + newActions.get(i));
+
+                }
             }
-        }
+        });
 
         TextField textField = new TextField();
         textField.setId("action-field");
         String allowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
         textField.setTextFormatter(new TextFormatter<>(change -> {
-            String newText = change.getControlNewText().toUpperCase();
+            String newText = change.getText().toUpperCase();
             for (char c : newText.toCharArray()) {
                 if (!allowedCharacters.contains(String.valueOf(c))) {
-                    return null;
+                    // If the new character is not allowed, remove it from the new text
+                    newText = newText.replace(String.valueOf(c), "");
                 }
             }
+            // Set the new text to the modified text
             change.setText(newText);
             return change;
         }));
@@ -47,7 +55,7 @@ public class ActionsUI {
             executeAction.accept(textInField);
             textField.clear();
         });
-        textBox.getChildren().addAll(Set.of(text, textField));
+        textBox.getChildren().addAll(List.of(text, textField));
         return textBox;
     }
 }

@@ -3,11 +3,28 @@ package ch.epfl.chacun.gui;
 import ch.epfl.chacun.PlayerColor;
 import javafx.scene.paint.Color;
 
+/**
+ * This class provides utility methods for mapping player colors to JavaFX colors.
+ * It cannot be instantiated.
+ *
+ * @author Bjork Pedersen (376143)
+ */
 public class ColorMap {
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     *
+     * @throws AssertionError always
+     */
     private ColorMap() {
         throw new AssertionError("ColorMap class cannot be instantiated");
     }
 
+    /**
+     * Returns the fill color for a given player.
+     *
+     * @param player the player for whom the fill color is being retrieved
+     * @return a JavaFX Color representing the fill color for the player
+     */
     public static javafx.scene.paint.Color fillColor(PlayerColor player) {
         switch (player) {
             case RED -> {
@@ -31,6 +48,12 @@ public class ColorMap {
         }
     }
 
+    /**
+     * Returns the stroke color for a given player.
+     *
+     * @param player the player for whom the stroke color is being retrieved
+     * @return a JavaFX Color representing the stroke color for the player
+     */
     public static Color strokeColor(PlayerColor player) {
         if (player == PlayerColor.RED || player == PlayerColor.PURPLE || player == PlayerColor.BLUE) {
             return Color.WHITE;

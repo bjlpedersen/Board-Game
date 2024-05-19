@@ -48,7 +48,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
      * @param <Z> The type of Zone this builder can contain.
      */
     public static final class Builder<Z extends Zone> {
-        private Set<Area<Z>> areas = new HashSet<>(Set.of());
+        private final Set<Area<Z>> areas = new HashSet<>(Set.of());
 
         /**
          * Constructor for the Builder class.
@@ -56,9 +56,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * @param partition The partition to copy the areas from.
          */
         public Builder(ZonePartition<Z> partition) {
-            for (Area<Z> area : partition.areas) {
-                areas.add(area);
-            }
+            areas.addAll(partition.areas);
         }
 
         /**
@@ -73,49 +71,64 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         /**
          * Adds an initial occupant to the area that contains the given zone.
          * @param zone The zone to look for.
-         * @param color The color of the occupant to add.
          * @throws IllegalArgumentException if the occupant cannot be added
          */
-        public void addInitialOccupant(Z zone, PlayerColor color) {
-            boolean added = false;
+        private Area<Z> findAreaContaining(Z zone) {
             for (Area<Z> area : areas) {
                 if (area.zones().contains(zone)) {
-                    Preconditions.checkArgument(area.occupants().isEmpty());
-                    Area<Z> newArea = new Area<Z>(area.zones(), List.of(color), area.openConnections());
-                    areas.remove(area);
-                    areas.add(newArea);
-                    added = true;
-                    break;
+                    return area;
                 }
             }
-            if (!added) {
-                Preconditions.checkArgument(false);
-            }
+            return null;
+        }
+
+        /**
+         * Adds an initial occupant to the area that contains the given zone.
+         *
+         * @param zone The zone to look for.
+         * @param color The color of the player to be added as an occupant.
+         * @throws IllegalArgumentException if the area is null or already has occupants.
+         */
+        public void addInitialOccupant(Z zone, PlayerColor color) {
+            Area<Z> area = findAreaContaining(zone);
+            Preconditions.checkArgument(area != null && area.occupants().isEmpty());
+            Area<Z> newArea = area.withInitialOccupant(color);
+            areas.remove(area);
+            areas.add(newArea);
         }
 
         /**
          * Removes an occupant from the area that contains the given zone.
+         *
          * @param zone The zone to look for.
-         * @param color The color of the occupant to remove.
-         * @throws IllegalArgumentException if the occupant cannot be removed
+         * @param color The color of the player to be removed as an occupant.
+         * @throws IllegalArgumentException if the area is null or does not contain the occupant.
          */
         public void removeOccupant(Z zone, PlayerColor color) {
-            boolean removed = false;
-            for (Area<Z> area : areas) {
-                if (area.zones().contains(zone)) {
-                    Preconditions.checkArgument(area.occupants().contains(color));
-                    List<PlayerColor> newOccupants = new ArrayList<>(area.occupants());
-                    newOccupants.remove(color);
-                    Area<Z> newArea = new Area<Z>(area.zones(), newOccupants, area.openConnections());
-                    areas.remove(area);
-                    areas.add(newArea);
-                    removed = true;
-                    break;
-                }
-            }
-            if (!removed) {
-                Preconditions.checkArgument(false);
-            }
+            Area<Z> area = findAreaContaining(zone);
+            Preconditions.checkArgument(area != null && area.occupants().contains(color));
+            List<PlayerColor> newOccupants = new ArrayList<>(area.occupants());
+            newOccupants.remove(color);
+            Area<Z> newArea = area.withoutOccupant(color);
+            areas.remove(area);
+            areas.add(newArea);
+        }
+
+        /**
+         * Unions two areas that contain the given zones.
+         *
+         * @param zone1 The first zone to look for.
+         * @param zone2 The second zone to look for.
+         * @throws IllegalArgumentException if either of the areas is null.
+         */
+        public void union(Z zone1, Z zone2) {
+            Area<Z> area1 = findAreaContaining(zone1);
+            Area<Z> area2 = findAreaContaining(zone2);
+            Preconditions.checkArgument(area1 != null && area2 != null);
+            Area<Z> newArea = area1.connectTo(area2);
+            areas.remove(area1);
+            areas.remove(area2);
+            areas.add(newArea);
         }
 
         /**
@@ -124,35 +137,9 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          */
         public void removeAllOccupantsOf(Area<Z> area) {
             Preconditions.checkArgument(areas.contains(area));
-            Area<Z> newArea = new Area<Z>(area.zones(), List.of(), area.openConnections());
+            Area<Z> newArea = area.withoutOccupants();
             areas.remove(area);
             areas.add(newArea);
-        }
-
-        /**
-         * Unions the areas that contain the given zones.
-         * @param zone1 The first zone to look for.
-         * @param zone2 The second zone to look for.
-         * @throws IllegalArgumentException if the zones cannot be unioned
-         */
-        public void union(Z zone1, Z zone2) {
-            boolean connected = false;
-            Set<Area<Z>> areasCopy = Set.copyOf(areas);
-            for (Area<Z> area1 : areasCopy) {
-                for (Area<Z> area2 : areasCopy) {
-                    if (area1.zones().contains(zone1) && area2.zones().contains(zone2)) {
-                        Area<Z> newArea = area1.connectTo(area2);
-                        areas.remove(area1);
-                        areas.remove(area2);
-                        areas.add(newArea);
-                        connected = true;
-                        break;
-                    }
-                }
-            }
-            if (!connected) {
-                throw new IllegalArgumentException();
-            }
         }
 
         /**

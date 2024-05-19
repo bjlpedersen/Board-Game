@@ -23,10 +23,10 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests, ZonePartition<Z
      * @author Bjork Pedersen (376143)
      */
     public static final class Builder {
-        private ZonePartition.Builder<Zone.Meadow> meadowBuilder;
-        private ZonePartition.Builder<Zone.Forest> forestBuilder;
-        private ZonePartition.Builder<Zone.River> riverBuilder;
-        private ZonePartition.Builder<Zone.Water> waterBuilder;
+        private final ZonePartition.Builder<Zone.Meadow> meadowBuilder;
+        private final ZonePartition.Builder<Zone.Forest> forestBuilder;
+        private final ZonePartition.Builder<Zone.River> riverBuilder;
+        private final ZonePartition.Builder<Zone.Water> waterBuilder;
 
         /**
          * Initializes the builder with an initial ZonePartitions instance.

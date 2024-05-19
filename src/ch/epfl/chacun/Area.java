@@ -144,60 +144,26 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return The set of occupants who have the majority.
      */
     public Set<PlayerColor> majorityOccupants() {
-        int redCount = 0;
-        int blueCount = 0;
-        int yellowCount = 0;
-        int greenCount = 0;
-        int purpleCount = 0;
+        int[] counts = new int[PlayerColor.values().length];
 
         for (PlayerColor color : occupants) {
-            switch (color) {
-                case PlayerColor.RED:
-                    redCount++;
-                    break;
-                case PlayerColor.BLUE:
-                    blueCount++;
-                    break;
-                case PlayerColor.GREEN:
-                    greenCount++;
-                    break;
-                case PlayerColor.YELLOW:
-                    yellowCount++;
-                    break;
-                case PlayerColor.PURPLE:
-                    purpleCount++;
-                    break;
-            }
+            counts[color.ordinal()]++;
         }
-        List<Integer> counts = new ArrayList<>(List.of(redCount, blueCount, greenCount, yellowCount, purpleCount));
+
+        int maxCount = Arrays.stream(counts).max().orElse(0);
         Set<PlayerColor> result = new HashSet<>();
-        Collections.sort(counts);
-        Collections.reverse(counts);
-        if(counts.get(0) == 0) {
+
+        if(maxCount == 0) {
             return result;
         }
 
-        List<Integer> onlyMax = new ArrayList<>();
-        onlyMax.add(counts.get(0));
-        for (int i = 1; i < counts.size(); i++) {
-            if (Objects.equals(counts.get(i), counts.get(0))) {
-                onlyMax.add(counts.get(i));
+        for (PlayerColor color : PlayerColor.values()) {
+            if (counts[color.ordinal()] == maxCount) {
+                result.add(color);
             }
         }
-        for (int i : onlyMax) {
-            if (i == redCount) {
-                result.add(PlayerColor.RED);
-            }if (i == blueCount) {
-                result.add(PlayerColor.BLUE);
-            } if (i == greenCount) {
-                result.add(PlayerColor.GREEN);
-            } if (i == yellowCount) {
-                result.add(PlayerColor.YELLOW);
-            } if (i == purpleCount) {
-                result.add(PlayerColor.PURPLE);
-            }
-        }
-    return result;
+
+        return result;
     }
 
     /**

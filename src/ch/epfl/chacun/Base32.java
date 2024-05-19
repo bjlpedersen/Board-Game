@@ -18,8 +18,9 @@ public class Base32 {
     }
 
     public static String encodeBits10(int num) {
-        int shiftedNum = num & 0b1111111111;
-        return String.valueOf(ALPHABET.charAt(shiftedNum));
+        int firstShiftedNum = (num >> 5) & 0b11111;
+        int secondShiftedNum = num & 0b11111;
+        return ALPHABET.charAt(firstShiftedNum) + String.valueOf(ALPHABET.charAt(secondShiftedNum));
     }
 
     public static int decode(String s) {

@@ -33,7 +33,7 @@ public enum Rotation {
      */
     public Rotation add(Rotation that) {
         int addedPosition = this.ordinal() + that.ordinal();
-        return Rotation.values()[addedPosition % 4];
+        return Rotation.values()[addedPosition % COUNT];
     }
 
     /**
@@ -42,13 +42,7 @@ public enum Rotation {
      * @return The negated rotation.
      */
     public Rotation negated() {
-        int position = this.ordinal();
-        for (int i = 0; i <= 3; i++) {
-            if ((position + i) % 4 == 0) {
-                return Rotation.values()[i];
-            }
-        }
-        return null;
+        return Rotation.values()[(4 - this.ordinal()) % COUNT];
     }
 
     /**

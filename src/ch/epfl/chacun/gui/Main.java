@@ -12,17 +12,24 @@ import javafx.stage.Stage;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.random.RandomGenerator;
+import java.util.random.RandomGeneratorFactory;
 
 public class Main extends Application {
+
+    private final SimpleObjectProperty<Tile> obsTileToPlace = new SimpleObjectProperty<>(o);
 
     public static void main(String[] args) {launch(args);}
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         List<String> names = getParameters().getUnnamed();
+
+        long seed = Long.parseUnsignedLong(getParameters().getNamed().values().iterator().next());
+        RandomGenerator randomGenerator = RandomGeneratorFactory.getDefault().create(seed);
+
         List<PlayerColor> colors = PlayerColor.ALL;
         List<PlayerColor> playerColors = new ArrayList<>();
-        Map<String, String> seed = getParameters().getNamed();
         if (names.size() < 2 || names.size() > 5) throw new IllegalArgumentException("Player count not in range");
 
         Map<PlayerColor, String> players = new HashMap<>();
@@ -31,7 +38,8 @@ public class Main extends Application {
             playerColors.add(colors.get(i));
         }
 
-        List<Tile> tiles = Tiles.TILES;
+        List<Tile> tiles = new ArrayList<>(Tiles.TILES);
+        Collections.shuffle(tiles, randomGenerator);
         TileDecks tileDecks = tileListToTileDeck(tiles);
 
         //PlayersUI parameters initialization
@@ -39,11 +47,20 @@ public class Main extends Application {
         GameState gameState = GameState.initial(playerColors, tileDecks, textMaker);
         SimpleObjectProperty<GameState> state = new SimpleObjectProperty<>(gameState); //Also used for BoardUI
 
+        //ActionsUI parameters initialization
+        SimpleObjectProperty<List<String>> obsActions = new SimpleObjectProperty<>(new ArrayList<>());
+        Consumer<String> executeAction = s -> {
+            GameState state1 = state.getValue();
+            state1 = ActionEncoder.decodeAndApply(state1, s).getGameState();
+            state.set(state1);
+        };
+
         //DecksUI parameters initialization
         Tile tileToPlace = state.getValue().tileToPlace();
-        ObservableValue<Tile> obsTileToPlace = new SimpleObjectProperty<>(tileToPlace);
-        SimpleObjectProperty<Integer> normalTilesLeft = new SimpleObjectProperty<>(tileDecks.normalTiles().size());
-        SimpleObjectProperty<Integer> menhirTilesLeft = new SimpleObjectProperty<>(tileDecks.menhirTiles().size());
+        obsTileToPlace.bind(state.map(GameState::tileToPlace));
+
+        SimpleObjectProperty<Integer> normalTilesLeft = new SimpleObjectProperty<>(tileDecks.normalTiles().size() - 1);
+        SimpleObjectProperty<Integer> menhirTilesLeft = new SimpleObjectProperty<>(tileDecks.menhirTiles().size() );
         SimpleObjectProperty<String> textToShow = new SimpleObjectProperty<>("");
         state.addListener((o, oldState, newState) -> {
             if (newState.nextAction() == GameState.Action.OCCUPY_TILE) {
@@ -55,13 +72,28 @@ public class Main extends Application {
         });
         Consumer<Occupant> handler = o -> {
             GameState state1 = state.getValue();
-            if (state1.nextAction() == GameState.Action.OCCUPY_TILE) state.set(state1.withNewOccupant(null));
+            if (state1.nextAction() == GameState.Action.OCCUPY_TILE) {
+                String action = ActionEncoder.withNewOccupant(state1, null).getEncodedAction();
+                List<String> updatedActions = new ArrayList<>(obsActions.getValue());
+                updatedActions.add(action);
+                obsActions.set(updatedActions);
+                state.set(state1.withNewOccupant(null));
+            }
             else if (state1.nextAction() == GameState.Action.RETAKE_PAWN) state.set(state1.withOccupantRemoved(null));
         };
 
+        //MessageBoardUI parameters initialization
+        List<MessageBoard.Message> messageBoard = new ArrayList<>();
+        SimpleObjectProperty<List<MessageBoard.Message>> obsMessageBoard = new SimpleObjectProperty<>(messageBoard);
+        state.addListener((o, oldState, newState) -> {
+            List<MessageBoard.Message> newMessages = newState.messageBoard().messages();
+            obsMessageBoard.set(newState.messageBoard().messages());
+        });
+
+
         // BoardUI parameters initialization
         final int REACH = 12;
-        ObjectProperty<Rotation> rotation = new SimpleObjectProperty<>(Rotation.NONE);
+        SimpleObjectProperty<Rotation> rotation = new SimpleObjectProperty<>(Rotation.NONE);
         Set<Occupant> allPlacedOccupants = new HashSet<>();
         ObservableValue<Set<Occupant>> visibleOccupants = state.map(g -> {
             Set<Occupant> occupants = new HashSet<>(g.lastTilePotentialOccupants());
@@ -88,34 +120,36 @@ public class Main extends Application {
         Consumer<Pos> placeTile = p -> {
             GameState state1 = state.getValue();
             PlacedTile placedTile = new PlacedTile(state1.tileToPlace(), state1.currentPlayer(), rotation.getValue(), p);
-            state.set(state1.withPlacedTile(placedTile));
+            String action = ActionEncoder.withPlacedTile(state1, placedTile).getEncodedAction();
+            List<String> updatedActions = new ArrayList<>(obsActions.getValue());
+            updatedActions.add(action);
+            obsActions.set(updatedActions);
             Set<Occupant> visibleOccupantsWhenTilePlaced = visibleOccupants.getValue();
-            visibleOccupantsWhenTilePlaced.addAll(placedTile.potentialOccupants());
-            switch (state1.board().lastPlacedTile().kind()) {
+            visibleOccupantsWhenTilePlaced.addAll(state1.withPlacedTile(placedTile).lastTilePotentialOccupants());
+            state.set(state.get().withPlacedTile(placedTile));
+            switch (state1.tileToPlace().kind()) {
                 case NORMAL -> normalTilesLeft.set(normalTilesLeft.getValue() - 1);
                 case MENHIR -> menhirTilesLeft.set(menhirTilesLeft.getValue() - 1);
             }
         };
         Consumer<Occupant> selectOccupant = o -> {
             GameState state1 = state.getValue();
-            if (state1.nextAction() == GameState.Action.OCCUPY_TILE) state.set(state1.withNewOccupant(o));
-            else if (state1.nextAction() == GameState.Action.RETAKE_PAWN) state.set(state1.withOccupantRemoved(o));
-        };
-
-        //MessageBoardUI parameters initialization
-        List<MessageBoard.Message> messageBoard = new ArrayList<>();
-        ObservableValue<List<MessageBoard.Message>> obsMessageBoard = new SimpleObjectProperty<>(messageBoard);
-
-        //ActionsUI parameters initialization
-        List<String> actions = new ArrayList<>();
-        ObservableValue<List<String>> obsActions = new SimpleObjectProperty<>(actions);
-        Consumer<String> executeAction = s -> {
-            GameState state1 = state.getValue();
-            state1 = ActionEncoder.decodeAndApply(state1, s).getGameState();
-            state.set(state1);
+            String action = "";
+            List<String> updatedActions = new ArrayList<>(obsActions.getValue());
+            if (state1.nextAction() == GameState.Action.OCCUPY_TILE) {
+                action = ActionEncoder.withNewOccupant(state1, o).getEncodedAction();
+                state.set(state1.withNewOccupant(o));
+            }
+            else if (state1.nextAction() == GameState.Action.RETAKE_PAWN) {
+                action = ActionEncoder.withOccupantRemoved(state1, o).getEncodedAction();
+                state.set(state1.withOccupantRemoved(o));
+            }
+            updatedActions.add(action);
+            obsActions.set(updatedActions);
         };
 
 
+        //Creation of all the Nodes and the Scene for the generalUI.
         Node boardUI = BoardUI.create(REACH, state, rotation, visibleOccupants, obsHighlightedTiles, rotateTile, placeTile, selectOccupant);
         Node messageBoardUI = MessageBoardUI.create(obsMessageBoard, obsHighlightedTiles);
         Node playersUI = PlayersUI.create(state, textMaker);
@@ -134,12 +168,14 @@ public class Main extends Application {
         gameView.setRight(sidePanel);
         state.set(state.getValue().withStartingTilePlaced());
 
+        //Settings of the primary stage.
         Scene scene = new Scene(gameView);
         primaryStage.setScene(scene);
         primaryStage.setTitle("ChaCuN");
         primaryStage.setHeight(1080);
         primaryStage.setWidth(1440);
         primaryStage.show();
+
     }
 
     private static TileDecks tileListToTileDeck(List<Tile> tiles) {

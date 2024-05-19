@@ -39,8 +39,7 @@ public sealed interface TileSide {
          */
         @Override
         public List<Zone> zones() {
-            List<Zone> zones = new ArrayList<>();
-            zones.add(this.forest);
+            List<Zone> zones = List.of(this.forest);
             return zones;
         }
 
@@ -74,8 +73,7 @@ public sealed interface TileSide {
          */
         @Override
         public List<Zone> zones() {
-            List<Zone> zones = new ArrayList<>();
-            zones.add(this.meadow);
+            List<Zone> zones = List.of(this.meadow);
             return zones;
         }
 
@@ -109,10 +107,7 @@ public sealed interface TileSide {
          */
         @Override
         public List<Zone> zones() {
-            List<Zone> zones = new ArrayList<>();
-            zones.add(this.meadow1);
-            zones.add(this.river);
-            zones.add(this.meadow2);
+            List<Zone> zones = List.of(this.meadow1, this.river, this.meadow2);
             return zones;
         }
 
@@ -124,13 +119,12 @@ public sealed interface TileSide {
          */
         @Override
         public boolean isSameKindAs(TileSide that) {
-            int amountOfRivers = 0;
             for (Zone zone : that.zones()) {
                 if (zone instanceof Zone.River) {
-                    amountOfRivers++;
+                    return  true;
                 }
             }
-            return (amountOfRivers > 0);
+            return false;
         }
     }
 

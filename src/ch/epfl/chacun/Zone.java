@@ -29,7 +29,7 @@ public sealed interface Zone {
      * @return The id of the tile.
      */
     public static int tileId(int zoneId) {
-        return (zoneId - zoneId % 10) / 10;
+        return zoneId / 10;
     }
 
     /**
@@ -91,7 +91,6 @@ public sealed interface Zone {
          *
          * @return The id of the tile.
          */
-        @Override
         public int tileId() {
             return (id - id % 10) / 10;
         }

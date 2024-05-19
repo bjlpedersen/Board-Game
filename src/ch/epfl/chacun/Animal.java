@@ -24,8 +24,8 @@ public record Animal(int id, Kind kind) {
      * @return The id of the tile that the animal is part of.
      */
     public int tileId() {
-        int zoneId = (id - id % 10) / 10;
-        return (zoneId - (zoneId % 10)) / 10;
+        int zoneId = id / 10;
+        return zoneId/10;
     }
 
 }
