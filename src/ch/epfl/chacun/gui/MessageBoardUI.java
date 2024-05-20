@@ -21,6 +21,8 @@ import static javafx.application.Platform.runLater;
  * @author Bjork Pedersen (376143)
  */
 public class MessageBoardUI {
+    private static final double TEXT_WRAPPING_WIDTH = ImageLoader.LARGE_TILE_FIT_SIZE;
+
 
     /**
      * Private constructor to prevent instantiation of this utility class.
@@ -39,49 +41,58 @@ public class MessageBoardUI {
      * @return a Node representing the message board UI
      */
     public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessageBoard, ObjectProperty<Set<Integer>> observableTileIds) {
-
-        // Create a VBox to hold all elements
         VBox box = new VBox();
-
-        // Add a listener to the observable message board
         observableMessageBoard.addListener((o, oldObs, newObs) -> {
-            // Clear the box
             box.getChildren().clear();
-
-            // For each message in the observable message board
             for (int i = 0; i < newObs.size(); ++i) {
                 MessageBoard.Message currentMessage = newObs.get(i);
-
-                // Create a Text to display the message
-                Text text = new Text(currentMessage.text());
-                text.setWrappingWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
-
-                // Add mouse enter and exit event handlers to the Text
-                text.setOnMouseEntered(mouseEvent -> {
-                    Set<Integer> updatedObservableTileIds = new HashSet<>(observableTileIds.getValue());
-                    updatedObservableTileIds.addAll(currentMessage.tileIds());
-                    observableTileIds.set(updatedObservableTileIds);
-                });
-                text.setOnMouseExited(mouseEvent -> {
-                    Set<Integer> updatedObservableTileIds = new HashSet<>(observableTileIds.getValue());
-                    updatedObservableTileIds.removeAll(currentMessage.tileIds());
-                    observableTileIds.set(updatedObservableTileIds);
-                });
-
-                // Add the Text to the box
+                Text text = createMessageText(currentMessage, observableTileIds);
                 box.getChildren().add(text);
             }
         });
 
-        // Create a ScrollPane for the box
-        ScrollPane messageScrollPane = new ScrollPane(box);
-        messageScrollPane.setId("message-board");
-        messageScrollPane.getStylesheets().add("message-board.css");
-
-        // Set the vertical scroll value to 1 (bottom) when the ScrollPane is shown
-        runLater(() -> messageScrollPane.setVvalue(1));
-
-        // Return the ScrollPane, which now contains all the elements
+        ScrollPane messageScrollPane = createScrollPane(box);
         return messageScrollPane;
     }
+
+    /**
+     * Creates a Text for a message on the message board. The Text includes the message's text and event handlers
+     * for when the mouse enters and exits the Text. When the mouse enters the Text, the message's tile IDs are added
+     * to the observable tile IDs. When the mouse exits the Text, the message's tile IDs are removed from the observable tile IDs.
+     *
+     * @param currentMessage The message for which the Text is being created.
+     * @param observableTileIds An ObjectProperty of a Set of Integers representing the observable tile IDs.
+     * @return A Text for the message.
+     */
+    private static Text createMessageText(MessageBoard.Message currentMessage, ObjectProperty<Set<Integer>> observableTileIds) {
+        Text text = new Text(currentMessage.text());
+        text.setWrappingWidth(TEXT_WRAPPING_WIDTH);
+        text.setOnMouseEntered(mouseEvent -> {
+            Set<Integer> updatedObservableTileIds = new HashSet<>(observableTileIds.getValue());
+            updatedObservableTileIds.addAll(currentMessage.tileIds());
+            observableTileIds.set(updatedObservableTileIds);
+        });
+        text.setOnMouseExited(mouseEvent -> {
+            Set<Integer> updatedObservableTileIds = new HashSet<>(observableTileIds.getValue());
+            updatedObservableTileIds.removeAll(currentMessage.tileIds());
+            observableTileIds.set(updatedObservableTileIds);
+        });
+        return text;
+    }
+
+
+/**
+ * Creates a ScrollPane for a VBox. The ScrollPane includes the VBox and has the ID "message-board". It also has
+ * the stylesheet "message-board.css". After the ScrollPane is created, its vertical scroll value is set to 1.
+ *
+ * @param box The VBox for which the ScrollPane is being created.
+ * @return A ScrollPane for the VBox.
+ */
+private static ScrollPane createScrollPane(VBox box) {
+    ScrollPane messageScrollPane = new ScrollPane(box);
+    messageScrollPane.setId("message-board");
+    messageScrollPane.getStylesheets().add("message-board.css");
+    runLater(() -> messageScrollPane.setVvalue(1));
+    return messageScrollPane;
+}
 }

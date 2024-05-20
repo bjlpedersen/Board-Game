@@ -19,10 +19,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -76,42 +73,13 @@ public class BoardUI {
                 int finalX = x;
                 Pos tilePos = new Pos(finalX, finalY);
 
-                // Add hover property listeners to the cell
-                BooleanProperty isHovered = new SimpleBooleanProperty();
-                cell.hoverProperty().addListener((observable, oldValue, newValue) -> isHovered.set(newValue));
+                //Create all of the cell properties that handle the mouse clicks/hovering...
+                Map<String, BooleanProperty> cellProperties = createCellProperties(cell, rot, rotateTile);                BooleanProperty isHovered = cellProperties.get("isHovered");
+                BooleanProperty isLeftMousePressed = cellProperties.get("isLeftMousePressed");
+                BooleanProperty isRightMousePressed = cellProperties.get("isRightMousePressed");
+                BooleanProperty isOptionPressed = cellProperties.get("isOptionPressed");
 
-                // Add left mouse pressed and released listeners to the cell
-                BooleanProperty isLeftMousePressed = new SimpleBooleanProperty(false);
-                cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-                    if (event.getButton() == MouseButton.PRIMARY) {
-                        isLeftMousePressed.set(true);
-                    }
-                });
-                cell.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-                    if (event.getButton() == MouseButton.PRIMARY) {
-                        isLeftMousePressed.set(false);
-                    }
-                });
 
-                // Add right mouse pressed and released listeners to the cell (with alt pressed too)
-                BooleanProperty isOptionPressed = new SimpleBooleanProperty(false);
-                BooleanProperty isRightMousePressed = new SimpleBooleanProperty(false);
-                cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-                    if (event.getButton() == MouseButton.SECONDARY && !event.isAltDown()) {
-                        isRightMousePressed.set(true);
-                        rotateTile.accept(Rotation.RIGHT);
-                    } else if (event.getButton() == MouseButton.SECONDARY && event.isAltDown()) {
-                        isOptionPressed.set(true);
-                        isRightMousePressed.set(true);
-                        rotateTile.accept(Rotation.LEFT);
-                    }
-                });
-                cell.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-                    if (event.getButton() == MouseButton.SECONDARY) {
-                        isRightMousePressed.set(false);
-                        isOptionPressed.set(false);
-                    }
-                });
 
                 // Manages the background image, rotation and veil color of each cell.
                 ObservableValue<Tile> tileToPlace = state.map(GameState::tileToPlace);
@@ -181,6 +149,63 @@ public class BoardUI {
         boardScrollPane.setVvalue(0.5);
         boardScrollPane.setHvalue(0.5);
         return boardScrollPane;
+    }
+
+    /**
+     * Creates a map of BooleanProperty instances for a given cell. These properties represent different states of the cell,
+     * such as whether it is being hovered over, whether the left or right mouse button is being pressed, and whether the option key is being pressed.
+     * This method also handles the logic for rotating the tile when the right mouse button is clicked.
+     *
+     * @param cell The Group object representing the cell for which to create the properties.
+     * @param rot The current rotation state of the game.
+     * @param rotateTile A Consumer for handling tile rotation.
+     * @return A map where the keys are the names of the properties and the values are the BooleanProperty instances.
+     */
+    private static Map<String, BooleanProperty> createCellProperties(Group cell, SimpleObjectProperty<Rotation> rot, Consumer<Rotation> rotateTile) {
+        Map<String, BooleanProperty> cellProperties = new HashMap<>();
+
+        // Create a BooleanProperty for whether the cell is being hovered over.
+        BooleanProperty isHovered = new SimpleBooleanProperty();
+        cell.hoverProperty().addListener((observable, oldValue, newValue) -> isHovered.set(newValue));
+        cellProperties.put("isHovered", isHovered);
+
+        // Create a BooleanProperty for whether the left mouse button is being pressed.
+        BooleanProperty isLeftMousePressed = new SimpleBooleanProperty(false);
+        cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                isLeftMousePressed.set(true);
+            }
+        });
+        cell.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                isLeftMousePressed.set(false);
+            }
+        });
+        cellProperties.put("isLeftMousePressed", isLeftMousePressed);
+
+        // Create BooleanProperties for whether the right mouse button is being pressed and whether the option key is being pressed.
+        BooleanProperty isOptionPressed = new SimpleBooleanProperty(false);
+        BooleanProperty isRightMousePressed = new SimpleBooleanProperty(false);
+        cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (event.getButton() == MouseButton.SECONDARY && !event.isAltDown()) {
+                isRightMousePressed.set(true);
+                rotateTile.accept(Rotation.RIGHT);
+            } else if (event.getButton() == MouseButton.SECONDARY && event.isAltDown()) {
+                isOptionPressed.set(true);
+                isRightMousePressed.set(true);
+                rotateTile.accept(Rotation.LEFT);
+            }
+        });
+        cell.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+            if (event.getButton() == MouseButton.SECONDARY) {
+                isRightMousePressed.set(false);
+                isOptionPressed.set(false);
+            }
+        });
+        cellProperties.put("isOptionPressed", isOptionPressed);
+        cellProperties.put("isRightMousePressed", isRightMousePressed);
+
+        return cellProperties;
     }
 
     /**

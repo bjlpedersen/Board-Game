@@ -17,7 +17,7 @@ import java.util.random.RandomGeneratorFactory;
 
 public class Main extends Application {
 
-    private final SimpleObjectProperty<Tile> obsTileToPlace = new SimpleObjectProperty<>(o);
+    private final SimpleObjectProperty<Tile> obsTileToPlace = new SimpleObjectProperty<>();
 
     public static void main(String[] args) {launch(args);}
 

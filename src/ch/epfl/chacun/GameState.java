@@ -430,18 +430,18 @@ public record GameState(List<PlayerColor> players,
                             withScoredRaft(otherBoard.riverSystemArea((Zone.Water) zone));
                 }
             }
-            if (zone instanceof Zone.River && otherBoard.riverArea((Zone.River) zone).isClosed()) {
-
-                // Update the message board with the score for the river area
-                otherMessageBoard = otherMessageBoard.withScoredRiver(otherBoard.riverArea((Zone.River) zone));
-            }
-
-            // If the zone is a forest and the corresponding forest area is closed
-            if (zone instanceof Zone.Forest && otherBoard.forestArea((Zone.Forest) zone).isClosed()) {
-
-                // Update the message board with the score for the forest area
-                otherMessageBoard = otherMessageBoard.withScoredForest(otherBoard.forestArea((Zone.Forest) zone));
-            }
+//            if (zone instanceof Zone.River && otherBoard.riverArea((Zone.River) zone).isClosed()) {
+//
+//                // Update the message board with the score for the river area
+//                otherMessageBoard = otherMessageBoard.withScoredRiver(otherBoard.riverArea((Zone.River) zone));
+//            }
+//
+//            // If the zone is a forest and the corresponding forest area is closed
+//            if (zone instanceof Zone.Forest && otherBoard.forestArea((Zone.Forest) zone).isClosed()) {
+//
+//                // Update the message board with the score for the forest area
+//                otherMessageBoard = otherMessageBoard.withScoredForest(otherBoard.forestArea((Zone.Forest) zone));
+//            }
         }
         return otherMessageBoard;
     }
@@ -524,8 +524,7 @@ public record GameState(List<PlayerColor> players,
             // If the zone is a forest and the corresponding forest area is closed
             if (zone instanceof Zone.Forest && otherBoard.forestArea((Zone.Forest) zone).isClosed()) {
                 // Update the message board with the score for the forest area
-                otherMessageBoard = otherMessageBoard.
-                        withScoredForest(otherBoard.forestArea((Zone.Forest) zone));
+                otherMessageBoard = otherMessageBoard.withScoredForest(otherBoard.forestArea((Zone.Forest) zone));
                 // Remove the gatherers or fishers in the forest area from the board
                 otherBoard = otherBoard.
                         withoutGatherersOrFishersIn(Set.of(otherBoard.forestArea((Zone.Forest) zone)), Set.of());

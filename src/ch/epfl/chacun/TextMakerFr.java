@@ -2,13 +2,37 @@ package ch.epfl.chacun;
 
 import java.util.*;
 
+/**
+ * This class is responsible for creating text messages in French for the game.
+ * It implements the TextMaker interface.
+ *
+ * @author Bjork Pedersen (376143)
+ */
 public class TextMakerFr implements TextMaker {
+    /**
+     * A map that associates player colors with their names.
+     */
     Map<PlayerColor, String> map;
+    private final String MAMMOUTH_STRING = "mammouth";
+    private final String AUROCH_STRING = "auroch";
+    private final String CERF_STRING = "cerf";
 
+
+    /**
+     * Constructs a new TextMakerFr object.
+     *
+     * @param map A map that associates player colors with their names.
+     */
     public TextMakerFr(Map<PlayerColor, String> map) {
         this.map = Map.copyOf(map);
     }
 
+    /**
+     * Converts a set of player colors to a string.
+     *
+     * @param scorers A set of player colors.
+     * @return A string representation of the player colors.
+     */
     private String scorersToString(Set<PlayerColor> scorers) {
         StringBuilder result = new StringBuilder();
         List<PlayerColor> listOfScorers = new ArrayList<>(scorers);
@@ -33,15 +57,13 @@ public class TextMakerFr implements TextMaker {
         return result.toString();
     }
 
-    private String mapOfAnimalsToString(Map<Animal.Kind, Integer> animals) {
-        List<String> animalOrder = Arrays.asList("mammouth", "auroch", "cerf");
-        Map<String, Integer> namesAndCounts = new HashMap<>();
-        namesAndCounts.put("mammouth", animals.get(Animal.Kind.MAMMOTH));
-        namesAndCounts.put("auroch", animals.get(Animal.Kind.AUROCHS));
-        namesAndCounts.put("cerf", animals.get(Animal.Kind.DEER));
-
-        StringBuilder result = new StringBuilder();
-
+    /**
+     * Counts the number of non-zero values in a map.
+     *
+     * @param namesAndCounts A map where the values are to be counted.
+     * @return The number of non-zero values in the map.
+     */
+    private int getNonZeroCount(Map<String, Integer> namesAndCounts) {
         Collection<Integer> numbers = namesAndCounts.values();
         int nonZeroCount = 0;
         for (int num : numbers) {
@@ -49,43 +71,97 @@ public class TextMakerFr implements TextMaker {
                 nonZeroCount += 1;
             }
         }
+        return nonZeroCount;
+    }
 
+    /**
+     * Handles the case where there is only one of a certain animal.
+     *
+     * @param result The StringBuilder to append the result to.
+     * @param animal The animal to handle.
+     * @param currentCount The current count of the animal.
+     * @param nonZeroCount The number of non-zero counts.
+     */
+    private void handleSingleAnimal(StringBuilder result, String animal, int currentCount, int nonZeroCount) {
+        if (nonZeroCount == 2) {
+            result.append(STR. "\{currentCount} \{animal} ");
+        } else if (nonZeroCount != 1) {
+            result.append(STR. "\{currentCount} \{animal}, ");
+        } else if (!result.isEmpty()){
+            result.append(STR. "et \{currentCount} \{animal}");
+        } else {
+            result.append(STR."\{currentCount} \{animal}");
+        }
+    }
+
+    /**
+     * Handles the case where there are multiple of a certain animal.
+     *
+     * @param result The StringBuilder to append the result to.
+     * @param animal The animal to handle.
+     * @param currentCount The current count of the animal.
+     * @param nonZeroCount The number of non-zero counts.
+     */
+    private void handleMultipleAnimals(StringBuilder result, String animal, int currentCount, int nonZeroCount) {
+        if (nonZeroCount == 2) {
+            result.append(STR. "\{currentCount} \{animal}s ");
+        } else if (nonZeroCount != 1) {
+            result.append(STR. "\{currentCount} \{animal}s, ");
+        } else if (!result.isEmpty()){
+            result.append(STR. "et \{currentCount} \{animal}s");
+        } else {
+            result.append(STR."\{currentCount} \{animal}");
+        }
+    }
+
+    /**
+     * Converts a map of animals to a string.
+     *
+     * @param animals A map of animals.
+     * @return A string representation of the animals.
+     */
+    private String mapOfAnimalsToString(Map<Animal.Kind, Integer> animals) {
+        // Define the order of animals
+        List<String> animalOrder = Arrays.asList(MAMMOUTH_STRING, AUROCH_STRING, CERF_STRING);
+
+        // Create a map to store the count of each animal
+        Map<String, Integer> namesAndCounts = new HashMap<>();
+        namesAndCounts.put(MAMMOUTH_STRING, animals.get(Animal.Kind.MAMMOTH));
+        namesAndCounts.put(AUROCH_STRING, animals.get(Animal.Kind.AUROCHS));
+        namesAndCounts.put(CERF_STRING, animals.get(Animal.Kind.DEER));
+
+        StringBuilder result = new StringBuilder();
+
+        // Count the number of non-zero animal counts
+        int nonZeroCount = getNonZeroCount(namesAndCounts);
+
+        // Construct the result string based on the count of each animal
         for (String animal : animalOrder) {
             int currentCount = namesAndCounts.get(animal);
 
-            //Skip if there are none of this animal
+            // Skip if there are none of this animal
             if (currentCount == 0) {
                 continue;
             } else if (currentCount == 1){
-                if (nonZeroCount == 2) {
-                    result.append(STR. "\{currentCount} \{animal} ");
-                    nonZeroCount-= 1;
-                } else if (nonZeroCount != 1) {
-                    result.append(STR. "\{currentCount} \{animal}, ");
-                    nonZeroCount-= 1;
-                } else if (!result.isEmpty()){
-                    result.append(STR. "et \{currentCount} \{animal}");
-                } else {
-                    result.append(STR."\{currentCount} \{animal}");
-                }
+                // Handle the case where there is only one of this animal
+                handleSingleAnimal(result, animal, currentCount, nonZeroCount);
+                nonZeroCount -= 1;
             } else {
-                if (nonZeroCount == 2) {
-                    result.append(STR. "\{currentCount} \{animal}s ");
-                    nonZeroCount-= 1;
-                } else if (nonZeroCount != 1) {
-                    result.append(STR. "\{currentCount} \{animal}s, ");
-                    nonZeroCount-= 1;
-                } else if (!result.isEmpty()){
-                    result.append(STR. "et \{currentCount} \{animal}s");
-                } else {
-                    result.append(STR."\{currentCount} \{animal}");
-                }
+                // Handle the case where there are multiple of this animal
+                handleMultipleAnimals(result, animal, currentCount, nonZeroCount);
+                nonZeroCount -= 1;
             }
-
         }
         return result.toString();
     }
 
+    /**
+     * Converts a set of player colors and a number of points to a string.
+     *
+     * @param playerColors A set of player colors.
+     * @param points The number of points.
+     * @return A string representation of the player colors and the points.
+     */
     private String PointstoString(Set<PlayerColor> playerColors, int points) {
         if (playerColors.size() > 1) {
             if (points > 1 || points == 0) {
@@ -99,11 +175,23 @@ public class TextMakerFr implements TextMaker {
         return STR. "\{ scorersToString(playerColors) } a remporté \{ points } point en tant qu'occupant·e majoritaire" ;
     }
 
+    /**
+     * Returns the name of a player.
+     *
+     * @param playerColor The color of the player.
+     * @return The name of the player.
+     */
     @Override
     public String playerName(PlayerColor playerColor) {
         return map.get(playerColor);
     }
 
+    /**
+     * Returns a string representation of a number of points.
+     *
+     * @param points The number of points.
+     * @return A string representation of the points.
+     */
     @Override
     public String points(int points) {
         if (points > 1) {
@@ -112,11 +200,26 @@ public class TextMakerFr implements TextMaker {
         return STR. "\{ points } point";
     }
 
+    /**
+     * Returns a message indicating that a player closed a forest with a menhir.
+     *
+     * @param player The color of the player.
+     * @return The message.
+     */
     @Override
     public String playerClosedForestWithMenhir(PlayerColor player) {
         return STR."\{map.get(player)} a fermé une forêt contenant un menhir et peut donc placer une tuile menhir.";
     }
 
+    /**
+     * Returns a message indicating the points scored by players for a forest.
+     *
+     * @param scorers The colors of the players.
+     * @param points The number of points.
+     * @param mushroomGroupCount The number of mushroom groups.
+     * @param tileCount The number of tiles.
+     * @return The message.
+     */
     @Override
     public String playersScoredForest(Set<PlayerColor> scorers, int points, int mushroomGroupCount, int tileCount) {
         if (mushroomGroupCount > 1) {
@@ -128,6 +231,15 @@ public class TextMakerFr implements TextMaker {
         }
     }
 
+    /**
+     * Returns a message indicating the points scored by players for a river.
+     *
+     * @param scorers The colors of the players.
+     * @param points The number of points.
+     * @param fishCount The number of fish.
+     * @param tileCount The number of tiles.
+     * @return The message.
+     */
     @Override
     public String playersScoredRiver(Set<PlayerColor> scorers, int points, int fishCount, int tileCount) {
         if (fishCount > 0) {
@@ -137,6 +249,14 @@ public class TextMakerFr implements TextMaker {
             }
     }
 
+    /**
+     * Returns a message indicating the points scored by a player for a hunting trap.
+     *
+     * @param scorer The color of the player.
+     * @param points The number of points.
+     * @param animals A map of animals.
+     * @return The message.
+     */
     @Override
     public String playerScoredHuntingTrap(PlayerColor scorer, int points, Map<Animal.Kind, Integer> animals) {
         if (!mapOfAnimalsToString(animals).isEmpty()) {
@@ -145,6 +265,14 @@ public class TextMakerFr implements TextMaker {
         return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } points en plaçant la fosse à pieux dans un pré." ;
     }
 
+    /**
+     * Returns a message indicating the points scored by a player for a logboat.
+     *
+     * @param scorer The color of the player.
+     * @param points The number of points.
+     * @param lakeCount The number of lakes.
+     * @return The message.
+     */
     @Override
     public String playerScoredLogboat(PlayerColor scorer, int points, int lakeCount) {
         if (lakeCount > 1) {
@@ -160,6 +288,14 @@ public class TextMakerFr implements TextMaker {
 
     }
 
+    /**
+     * Returns a message indicating the points scored by players for a meadow.
+     *
+     * @param scorers The colors of the players.
+     * @param points The number of points.
+     * @param animals A map of animals.
+     * @return The message.
+     */
     @Override
     public String playersScoredMeadow(Set<PlayerColor> scorers, int points, Map<Animal.Kind, Integer> animals) {
         if (!mapOfAnimalsToString(animals).isEmpty()) {
@@ -169,6 +305,14 @@ public class TextMakerFr implements TextMaker {
 
     }
 
+    /**
+     * Returns a message indicating the points scored by players for a river system.
+     *
+     * @param scorers The colors of the players.
+     * @param points The number of points.
+     * @param fishCount The number of fish.
+     * @return The message.
+     */
     @Override
     public String playersScoredRiverSystem(Set<PlayerColor> scorers, int points, int fishCount) {
         if (fishCount > 1) {
@@ -179,6 +323,14 @@ public class TextMakerFr implements TextMaker {
         return STR. "\{PointstoString(scorers, points)} d'un réseau hydrographique.";
     }
 
+    /**
+     * Returns a message indicating the points scored by players for a pit trap.
+     *
+     * @param scorers The colors of the players.
+     * @param points The number of points.
+     * @param animals A map of animals.
+     * @return The message.
+     */
     @Override
     public String playersScoredPitTrap(Set<PlayerColor> scorers, int points, Map<Animal.Kind, Integer> animals) {
         if (!mapOfAnimalsToString(animals).isEmpty()) {
@@ -188,6 +340,14 @@ public class TextMakerFr implements TextMaker {
         return STR."\{ PointstoString(scorers, points) } d'un pré contenant la grande fosse à pieux.";
     }
 
+    /**
+     * Returns a message indicating the points scored by players for a raft.
+     *
+     * @param scorers The colors of the players.
+     * @param points The number of points.
+     * @param lakeCount The number of lakes.
+     * @return The message.
+     */
     @Override
     public String playersScoredRaft(Set<PlayerColor> scorers, int points, int lakeCount) {
         String middlePart = "d'un réseau hydrographique contenant le radeau et";
@@ -197,6 +357,13 @@ public class TextMakerFr implements TextMaker {
         return STR. "\{ PointstoString(scorers, points) } \{ middlePart } \{ lakeCount } lacs." ;
     }
 
+    /**
+     * Returns a message indicating the players who won the game.
+     *
+     * @param winners The colors of the winning players.
+     * @param points The number of points.
+     * @return The message.
+     */
     @Override
     public String playersWon(Set<PlayerColor> winners, int points) {
         if (winners.size() > 1) {
@@ -213,11 +380,21 @@ public class TextMakerFr implements TextMaker {
         return STR. "\{ scorersToString(winners) } \{ middlePart } \{ points } point !" ;
     }
 
+    /**
+     * Returns a message indicating that the player should click to occupy a tile.
+     *
+     * @return The message.
+     */
     @Override
     public String clickToOccupy() {
         return "Cliquez sur le pion ou la hutte que vous désirez placer, ou ici pour ne pas en placer.";
     }
 
+    /**
+     * Returns a message indicating that the player should click to unoccupy a tile.
+     *
+     * @return The message.
+     */
     @Override
     public String clickToUnoccupy() {
         return "Cliquez sur le pion que vous désirez reprendre, ou ici pour ne pas en reprendre.";
