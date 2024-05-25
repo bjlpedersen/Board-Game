@@ -30,7 +30,7 @@ public enum Direction {
      * @return The direction after the rotation.
      */
     public Direction rotated(Rotation rotation) {
-        return values()[(this.ordinal() + rotation.ordinal()) % 4];
+        return values()[(this.ordinal() + rotation.ordinal()) % COUNT];
     }
 
     /**

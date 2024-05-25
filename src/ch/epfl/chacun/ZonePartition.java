@@ -39,8 +39,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
                 return area;
             }
         }
-        Preconditions.checkArgument(false);
-        return null;
+        throw new IllegalArgumentException();
     }
 
     /**

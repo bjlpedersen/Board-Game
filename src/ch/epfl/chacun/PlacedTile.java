@@ -2,6 +2,7 @@ package ch.epfl.chacun;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -19,9 +20,9 @@ public record PlacedTile(Tile tile, PlayerColor placer, Rotation rotation, Pos p
      * @throws NullPointerException     if the tile, rotation, or position is null
      */
     public PlacedTile {
-        if (tile == null || rotation == null || pos == null) {
-            throw new NullPointerException();
-        }
+        Objects.requireNonNull(tile);
+        Objects.requireNonNull(rotation);
+        Objects.requireNonNull(pos);
     }
 
     /**
@@ -155,8 +156,8 @@ public record PlacedTile(Tile tile, PlayerColor placer, Rotation rotation, Pos p
         } else {
             for (Zone sideZone : tile.sideZones()) {
                 result.add(new Occupant(Occupant.Kind.PAWN, sideZone.id()));
-                if (sideZone instanceof Zone.River) {
-                    if (((Zone.River) sideZone).hasLake()) {
+                if (sideZone instanceof Zone.River river) {
+                    if (river.hasLake()) {
                         result.add(new Occupant(Occupant.Kind.HUT, ((Zone.River) sideZone).lake().id()));
                     } else {
                         result.add(new Occupant(Occupant.Kind.HUT, sideZone.id()));

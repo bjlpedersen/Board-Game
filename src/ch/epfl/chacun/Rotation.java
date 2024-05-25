@@ -42,7 +42,7 @@ public enum Rotation {
      * @return The negated rotation.
      */
     public Rotation negated() {
-        return Rotation.values()[(4 - this.ordinal()) % COUNT];
+        return Rotation.values()[(COUNT - this.ordinal()) % COUNT];
     }
 
     /**

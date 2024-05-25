@@ -72,6 +72,8 @@ public sealed interface Zone {
 
     /**
      * This record represents a Forest zone in the game.
+     * @param id The id of the forest zone.
+     * @param kind the kind of forest
      * @author Bjork Pedersen (376143)
      */
     public record Forest(int id, Kind kind) implements Zone {
@@ -92,7 +94,7 @@ public sealed interface Zone {
          * @return The id of the tile.
          */
         public int tileId() {
-            return (id - id % 10) / 10;
+            return id / 10 ;
         }
 
         /**
@@ -119,6 +121,9 @@ public sealed interface Zone {
 
     /**
      * This record represents a Meadow zone in the game.
+     * @param id the id of the meadow
+     * @param animals the animals in the meadow
+     * @param specialPower the special power of the meadow
      * @author Bjork Pedersen (376143)
      */
     public record Meadow(int id, List<Animal> animals, Zone.SpecialPower specialPower) implements Zone {
@@ -143,7 +148,7 @@ public sealed interface Zone {
          * @return The id of the tile.
          */
         public int tileId() {
-            return (id - id % 10) / 10;
+            return id / 10 ;
         }
 
         /**
@@ -172,6 +177,9 @@ public sealed interface Zone {
 
     /**
      * This record represents a Lake zone in the game.
+     * @param id the id of the lake
+     * @param fishCount the count of fish in the lake
+     * @param specialPower the special power of the lake
      * @author Bjork Pedersen (376143)
      */
     public record Lake(int id, int fishCount, SpecialPower specialPower) implements ch.epfl.chacun.Zone.Water {
@@ -191,7 +199,7 @@ public sealed interface Zone {
          */
         @Override
         public int tileId() {
-            return (id - id % 10) /10 ;
+            return id / 10 ;
         }
 
         /**
@@ -207,6 +215,9 @@ public sealed interface Zone {
 
     /**
      * This record represents a River zone in the game.
+     * @param id the id of the river
+     * @param fishCount the count of fish in the river
+     * @param lake the lake that the river is connected to, or null if the river is not connected to a lake
      * @author Bjork Pedersen (376143)
      */
     public record River(int id, int fishCount, Lake lake) implements ch.epfl.chacun.Zone.Water {
@@ -218,7 +229,7 @@ public sealed interface Zone {
          */
         @Override
         public int tileId() {
-            return (id - id % 10) / 10;
+            return id / 10 ;
         }
 
         /**

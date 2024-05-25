@@ -76,9 +76,6 @@ public final class Board {
     public Set<Occupant> occupants() {
         Set<Occupant> occupants = new HashSet<>();
         for (int orderId : placedTilesOrder) {
-            if (tileWithId(orderId) == null) {
-                continue;
-            }
             PlacedTile placedTile = tileWithId(orderId);
             if (placedTile.occupant() != null) {
                 occupants.add(placedTile.occupant());
@@ -86,6 +83,28 @@ public final class Board {
         }
         return occupants;
     }
+
+//    public Set<Occupant> occupants() {
+//        Set<PlayerColor> occupants = new HashSet<>();
+//        for (Area<Zone.Forest> forest : zonePartitions.forests().areas()) {
+//            if (forest.occupants() != null) {
+//                occupants.addAll(forest.occupants());
+//            }
+//        }
+//        for (Area<Zone.Meadow> meadow : zonePartitions.meadows().areas()) {
+//            if (meadow.occupants() != null) {
+//                occupants.addAll(meadow.occupants());
+//            }
+//        }
+//        for (Area<Zone.River> river : zonePartitions.rivers().areas()) {
+//            if (river.occupants() != null) {
+//                occupants.addAll(river.occupants());
+//            }
+//        }
+//        return occupants;
+//    }
+
+
 
     /**
      * Returns the area of the given forest zone.
@@ -155,7 +174,8 @@ public final class Board {
     public Area<Zone.Meadow> adjacentMeadow(Pos pos, Zone.Meadow meadowZone) {
         Set<Zone.Meadow> zones = new HashSet<>();
         zones.add(meadowZone);
-        List<PlayerColor> occupants = meadowArea(meadowZone).occupants();
+        Area<Zone.Meadow> meadowArea = meadowArea(meadowZone);
+        List<PlayerColor> occupants = meadowArea.occupants();
         int x = pos.x();
         int y = pos.y();
         Set<Pos> possiblePositions = new HashSet<>();
@@ -164,7 +184,7 @@ public final class Board {
                 possiblePositions.add(new Pos(x + i, y + j));
             }
         }
-        for (Zone.Meadow meadow : meadowArea(meadowZone).zones()) {
+        for (Zone.Meadow meadow : meadowArea.zones()) {
             if (possiblePositions.contains(tileWithId(meadow.tileId()).pos())) {
                 zones.add(meadow);
             }
@@ -182,26 +202,12 @@ public final class Board {
     public int occupantCount(PlayerColor player, Occupant.Kind occupantKind) {
         int count = 0;
         for (int orderId : placedTilesOrder) {
-            if (tileWithId(orderId) == null) {
-                continue;
-            }
             PlacedTile placedTile = tileWithId(orderId);
             if (placedTile.placer() == player && placedTile.occupant() != null && placedTile.occupant().kind() == occupantKind) {
                 count++;
             }
         }
         return count;
-    }
-
-    /**
-     * finds the set of all directions minus the ones that would be out of bounds if it moved by one more tile.
-     * @param placedTile the tile that has been placed
-     * @return the set of all directions minus the ones that would be out of bounds if it moved by one more tile.
-     */
-    private static Set<Direction> removeEdgesThatTileIsOn(PlacedTile placedTile) {
-        Set<Direction> possibleDirections = new HashSet<>(Direction.ALL);
-        possibleDirections.removeIf(direction -> !isValidPosition(placedTile, direction));
-        return possibleDirections;
     }
 
     /**
@@ -236,15 +242,15 @@ public final class Board {
         Set<Pos> insertionPositions = new HashSet<>();
         for (PlacedTile placed : placedTilesInArray) {
             if (placed != null) {
-                Set<Direction> possibleDirections = removeEdgesThatTileIsOn(placed);
-                for (Direction d : possibleDirections) {
-                    if (tileAt(placed.pos().neighbor(d)) == null) {
-                        insertionPositions.add(placed.pos().neighbor(d));
+                for (Direction d : Direction.ALL) {
+                    Pos neighborPos = placed.pos().neighbor(d);
+                    if (tileAt(neighborPos) == null && isValidPosition(placed, d)) {
+                        insertionPositions.add(neighborPos);
                     }
                 }
             }
         }
-        return  insertionPositions;
+        return insertionPositions;
     }
 
     /**
@@ -471,7 +477,10 @@ public final class Board {
                 Area<Zone.Forest> area = zonePartitions.forests().areaContaining(forest);
 
                 // If the area is in the set of forests, is occupied, and the occupant's zone ID matches the forest's ID
-                if (forests.contains(area) && area.isOccupied() && placedTile.occupant() != null && placedTile.occupant().zoneId() == forest.id()) {
+                if (forests.contains(area) &&
+                        area.isOccupied() &&
+                        placedTile.occupant() != null &&
+                        placedTile.occupant().zoneId() == forest.id()) {
                     // Create a new tile with the same properties as the placed tile, but with no occupant
                     placedTile = placedTile.withNoOccupant();
 
@@ -513,7 +522,8 @@ public final class Board {
                 if (rivers.contains(area) &&
                         area.isOccupied() &&
                         placedTile.occupant() != null &&
-                        placedTile.occupant().kind() != Occupant.Kind.HUT) {
+                        placedTile.occupant().kind() != Occupant.Kind.HUT &&
+                        placedTile.occupant().zoneId() == river.id()) {
 
                     // Create a new tile with the same properties as the placed tile, but with no occupant
                     placedTile = placedTile.withNoOccupant();

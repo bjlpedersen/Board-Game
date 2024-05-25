@@ -96,15 +96,13 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      */
     public MessageBoard withScoredRiver(Area<Zone.River> river) {
         if (river.isOccupied()) {
-            List<Message> increasedMessages = new ArrayList<>(messages);
-            increasedMessages.add(new Message(textMaker.playersScoredRiver(river.majorityOccupants(),
+            return withNewMessage(textMaker.playersScoredRiver(river.majorityOccupants(),
                     Points.forClosedRiver(river.zones().size(), Area.riverFishCount(river)),
                     Area.riverFishCount(river),
                     river.tileIds().size()),
                     Points.forClosedRiver(river.zones().size(), Area.riverFishCount(river)),
                     river.majorityOccupants(),
-                    river.tileIds()));
-            return new MessageBoard(textMaker, increasedMessages);
+                    river.tileIds());
         } else {
             return this;
         }
@@ -135,15 +133,13 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
         map.put(Animal.Kind.AUROCHS, aurochsCount);
         map.put(Animal.Kind.MAMMOTH, mammothCount);
         map.put(Animal.Kind.TIGER, tigerCount);
-        if (Points.forMeadow(mammothCount, aurochsCount, deerCount) > 0) {
-            List<Message> increasedMessages = new ArrayList<>(messages);
-            increasedMessages.add(new Message(textMaker.playerScoredHuntingTrap(
-                                                        scorer,
-                                                        Points.forMeadow(mammothCount, aurochsCount, deerCount), map),
-                    Points.forMeadow(mammothCount, aurochsCount, deerCount),
+        int pointsForMeadow = Points.forMeadow(mammothCount, aurochsCount, deerCount);
+        if (pointsForMeadow > 0) {
+            return withNewMessage(textMaker.playerScoredHuntingTrap(scorer,
+                    pointsForMeadow, map),
+                    pointsForMeadow,
                     Set.of(scorer),
-                    adjacentMeadow.tileIds()));
-            return new MessageBoard(textMaker, increasedMessages);
+                    adjacentMeadow.tileIds());
         } else {
             return this;
         }
@@ -175,44 +171,27 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * @return A new message board with the added message / same message board.
      */
     public MessageBoard withScoredMeadow(Area<Zone.Meadow> meadow, Set<Animal> cancelledAnimals) {
-        int mammothCount = 0;
-        int aurochsCount = 0;
-        int deerCount = 0;
-        int tigerCount = 0;
+        Map<Animal.Kind, Integer> animalCount = new HashMap<>();
         Set<Animal> animals = Area.animals(meadow, cancelledAnimals);
         for (Animal animal : animals) {
-            switch (animal.kind()) {
-                case MAMMOTH -> mammothCount++;
-                case AUROCHS -> aurochsCount++;
-                case DEER -> deerCount++;
-                case TIGER -> tigerCount++;
-            }
+            animalCount.put(animal.kind(), animalCount.getOrDefault(animal.kind(), 0) + 1);
         }
-
-        Map<Animal.Kind, Integer> fullAnimalMap = Map.of(Animal.Kind.MAMMOTH,
-                mammothCount, Animal.Kind.AUROCHS,
-                aurochsCount, Animal.Kind.DEER, deerCount,
-                Animal.Kind.TIGER, tigerCount);
-        Map<Animal.Kind, Integer> reducedAnimalMap = new HashMap<>();
-        for (Animal.Kind kind : fullAnimalMap.keySet()) {
-            if (fullAnimalMap.get(kind) > 0) {
-                reducedAnimalMap.put(kind, fullAnimalMap.get(kind));
-            }
-        }
-
-        if (meadow.isOccupied() && Points.forMeadow(mammothCount, aurochsCount, deerCount) > 0) {
-            List<Message> increasedMessages = new ArrayList<>(messages);
-            increasedMessages.add(new Message(textMaker.playersScoredMeadow(meadow.majorityOccupants(),
-                    Points.forMeadow(mammothCount, aurochsCount, deerCount),
-                    reducedAnimalMap),
-                    Points.forMeadow(mammothCount, aurochsCount, deerCount),
+        int pointsForMeadow = Points.forMeadow(animalCount.getOrDefault(Animal.Kind.MAMMOTH, 0),
+                animalCount.getOrDefault(Animal.Kind.AUROCHS, 0),
+                animalCount.getOrDefault(Animal.Kind.DEER, 0));
+        if (meadow.isOccupied() && pointsForMeadow > 0) {
+            return withNewMessage(textMaker.playersScoredMeadow(meadow.majorityOccupants(),
+                            pointsForMeadow,
+                            animalCount),
+                    pointsForMeadow,
                     meadow.majorityOccupants(),
-                    meadow.tileIds()));
-            return new MessageBoard(textMaker, increasedMessages);
+                    meadow.tileIds());
         } else {
             return this;
         }
     }
+
+
 
     /**
      * Updates the message board with a new message (of type playerScoredRivreSystem) if needed.
@@ -222,16 +201,14 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      * are not greater than 0
      */
     public MessageBoard withScoredRiverSystem(Area<Zone.Water> riverSystem) {
-        if (riverSystem.isOccupied() && Points.forRiverSystem(Area.riverSystemFishCount(riverSystem)) > 0) {
-            List<Message> increasedMessages = new ArrayList<>(messages);
-            increasedMessages.add(new Message(textMaker.playersScoredRiverSystem(riverSystem.majorityOccupants(),
-                    Points.forRiverSystem(Area.riverSystemFishCount(riverSystem)),
-                    Area.riverSystemFishCount(riverSystem)),
-                    Points.forRiverSystem(Area.riverSystemFishCount(riverSystem)),
-
+        int riverSystemFishCount = Area.riverSystemFishCount(riverSystem);
+        if (riverSystem.isOccupied() && Points.forRiverSystem(riverSystemFishCount) > 0) {
+            return withNewMessage(textMaker.playersScoredRiverSystem(riverSystem.majorityOccupants(),
+                    Points.forRiverSystem(riverSystemFishCount),
+                   riverSystemFishCount),
+                    Points.forRiverSystem(riverSystemFishCount),
                     riverSystem.majorityOccupants(),
-                    riverSystem.tileIds()));
-            return new MessageBoard(textMaker, increasedMessages);
+                    riverSystem.tileIds());
         } else {
             return this;
         }
@@ -259,8 +236,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
             }
         }
         if (Points.forMeadow(mammothCount, aurochsCount, deerCount) > 0  && adjacentMeadow.isOccupied()) {
-            List<Message> increasedMessages = new ArrayList<>(messages);
-            increasedMessages.add(new Message(textMaker.playersScoredPitTrap(adjacentMeadow.majorityOccupants(),
+            return withNewMessage(textMaker.playersScoredPitTrap(adjacentMeadow.majorityOccupants(),
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
                     Map.of(
                             Animal.Kind.MAMMOTH, mammothCount,
@@ -269,8 +245,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
                             Animal.Kind.TIGER, tigerCount)),
                     Points.forMeadow(mammothCount, aurochsCount, deerCount),
                     adjacentMeadow.majorityOccupants(),
-                    adjacentMeadow.tileIds()));
-            return new MessageBoard(textMaker, increasedMessages);
+                    adjacentMeadow.tileIds());
         } else {
             return this;
         }
@@ -284,15 +259,12 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
      */
     public MessageBoard withScoredRaft(Area<Zone.Water> riverSystem) {
         if (riverSystem.isOccupied()) {
-            List<Message> increasedMessages = new ArrayList<>(messages);
-            increasedMessages.add(new Message(textMaker.playersScoredRaft(riverSystem.majorityOccupants(),
+            return  withNewMessage(textMaker.playersScoredRaft(riverSystem.majorityOccupants(),
                     Points.forRaft(Area.lakeCount(riverSystem)),
                     Area.lakeCount(riverSystem)),
                     Points.forRaft(Area.lakeCount(riverSystem)),
                     riverSystem.majorityOccupants(),
-                    riverSystem.tileIds()));
-
-            return new MessageBoard(textMaker, increasedMessages);
+                    riverSystem.tileIds());
         } else {
             return this;
         }
@@ -312,6 +284,21 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
     }
 
     /**
+     * Creates a new MessageBoard instance with a new message added to the existing list of messages.
+     *
+     * @param text The text of the new message to be added.
+     * @param points The points associated with the new message.
+     * @param scorers The set of players who scored, to be associated with the new message.
+     * @param tileIds The set of tile IDs associated with the new message.
+     * @return A new MessageBoard instance with the new message added to the list of messages.
+     */
+    private MessageBoard withNewMessage(String text, int points, Set<PlayerColor> scorers, Set<Integer> tileIds) {
+        List<Message> newMessages = new ArrayList<>(this.messages);
+        newMessages.add(new Message(text, points, scorers, tileIds));
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    /**
      * Represents a message in the game.
      * @author Bjork Pedersen (376143)
      */
@@ -326,9 +313,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages){
          * @throws IllegalArgumentException if the points are not greater than or equal to 0
          */
         public Message {
-            if (text == null) {
-                throw new NullPointerException();
-            }
+            Objects.requireNonNull(text);
             Preconditions.checkArgument(points >= 0);
             scorers = Set.copyOf(scorers);
             tileIds = Set.copyOf(tileIds);

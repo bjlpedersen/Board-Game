@@ -29,10 +29,10 @@ public record Pos(int x, int y) {
      */
     public Pos neighbor(Direction direction) {
         return switch (direction) {
-            case N -> new Pos(x, y - 1);
-            case E -> new Pos(x + 1, y);
-            case S -> new Pos(x, y + 1);
-            case W -> new Pos(x - 1, y);
+            case N -> translated(0, -1);
+            case E -> translated(1, 0);
+            case S -> translated(0, 1);
+            case W -> translated(-1, 0);
         };
     }
 }

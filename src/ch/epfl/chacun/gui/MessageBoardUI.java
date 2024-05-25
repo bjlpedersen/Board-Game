@@ -40,7 +40,8 @@ public class MessageBoardUI {
      * @param observableTileIds the observable tile IDs
      * @return a Node representing the message board UI
      */
-    public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessageBoard, ObjectProperty<Set<Integer>> observableTileIds) {
+    public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessageBoard,
+                              ObjectProperty<Set<Integer>> observableTileIds) {
         VBox box = new VBox();
         observableMessageBoard.addListener((o, oldObs, newObs) -> {
             box.getChildren().clear();
@@ -51,8 +52,7 @@ public class MessageBoardUI {
             }
         });
 
-        ScrollPane messageScrollPane = createScrollPane(box);
-        return messageScrollPane;
+        return createScrollPane(box);
     }
 
     /**
@@ -79,7 +79,6 @@ public class MessageBoardUI {
         });
         return text;
     }
-
 
 /**
  * Creates a ScrollPane for a VBox. The ScrollPane includes the VBox and has the ID "message-board". It also has

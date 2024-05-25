@@ -66,8 +66,8 @@ public class TextMakerFr implements TextMaker {
     private int getNonZeroCount(Map<String, Integer> namesAndCounts) {
         Collection<Integer> numbers = namesAndCounts.values();
         int nonZeroCount = 0;
-        for (int num : numbers) {
-            if (num != 0) {
+        for (Integer num : numbers) {
+            if (num != null && num != 0) {
                 nonZeroCount += 1;
             }
         }
@@ -137,10 +137,10 @@ public class TextMakerFr implements TextMaker {
 
         // Construct the result string based on the count of each animal
         for (String animal : animalOrder) {
-            int currentCount = namesAndCounts.get(animal);
+            Integer currentCount = namesAndCounts.get(animal);
 
-            // Skip if there are none of this animal
-            if (currentCount == 0) {
+            // Skip if there are none of this animal or the count is null
+            if (currentCount == null || currentCount == 0) {
                 continue;
             } else if (currentCount == 1){
                 // Handle the case where there is only one of this animal

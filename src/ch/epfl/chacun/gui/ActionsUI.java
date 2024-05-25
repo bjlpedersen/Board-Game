@@ -8,7 +8,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class ActionsUI {
@@ -66,12 +65,15 @@ public class ActionsUI {
     }
 
     /**
-     * Creates a TextField that only allows certain characters to be inputted and executes an action when the enter key is pressed.
-     * The allowed characters are "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567". When the enter key is pressed, the text in the TextField is
+     * Creates a TextField that only allows certain characters
+     * to be inputted and executes an action when the enter key is pressed.
+     * The allowed characters are "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567".
+     * When the enter key is pressed, the text in the TextField is
      * passed to the executeAction Consumer and the TextField is cleared.
      *
      * @param executeAction A Consumer of a String representing the action to execute.
-     * @return A TextField that only allows certain characters to be inputted and executes an action when the enter key is pressed.
+     * @return A TextField that only allows certain characters to be
+     * inputted and executes an action when the enter key is pressed.
      */
     private static TextField createTextField(Consumer<String> executeAction) {
         TextField textField = new TextField();

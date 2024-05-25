@@ -80,7 +80,7 @@ public class ActionEncoder {
             return new StateAction(state , "7");
         }
         StringBuilder action = new StringBuilder();
-        List<Occupant> boardOccupants = state.board().occupants().stream().toList();
+        List<Occupant> boardOccupants = new ArrayList<>(state.board().occupants().stream().toList());
         boardOccupants.sort(Comparator.comparingInt(Occupant::zoneId));
         int occIndex = boardOccupants.indexOf(occ);
         action.append(Integer.toBinaryString(occIndex));

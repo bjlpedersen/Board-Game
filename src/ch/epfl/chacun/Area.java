@@ -83,10 +83,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
         int count = 0;
         Set<Zone.Lake> countedLakes = new HashSet<>();
         for (Zone.River individualRiver : river.zones) {
-            count = count + individualRiver.fishCount();
-            if (individualRiver.hasLake() && !(countedLakes.contains(individualRiver.lake()))) {
-                count = count + individualRiver.lake().fishCount();
-                countedLakes.add(individualRiver.lake());
+            count += individualRiver.fishCount();
+            if (individualRiver.hasLake() && countedLakes.add(individualRiver.lake())) {
+                count += individualRiver.lake().fishCount();
             }
         }
         return count;
@@ -133,9 +132,6 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return true if the area is occupied, false otherwise.
      */
     public boolean isOccupied() {
-        if (occupants == null) {
-            return false;
-        }
         return !occupants.isEmpty();
     }
 
@@ -162,7 +158,6 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
                 result.add(color);
             }
         }
-
         return result;
     }
 
@@ -198,8 +193,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public Area<Z> withInitialOccupant(PlayerColor occupant) {
         Preconditions.checkArgument(occupants.isEmpty());
-        List<PlayerColor> occupants = new ArrayList<>();
-        occupants.add(occupant);
+        List<PlayerColor> occupants = List.of(occupant);
         return new Area<>(zones, occupants, openConnections);
     }
 

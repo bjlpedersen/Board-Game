@@ -43,16 +43,16 @@ public record Occupant(Kind kind, int zoneId) {
      */
     public static int occupantsCount(Kind kind) {
         int result;
-        switch (kind) {
-            case PAWN:
+        return switch (kind) {
+            case PAWN -> {
                 result = 5;
-                break;
-            case HUT:
+                yield result;
+            }
+            case HUT -> {
                 result = 3;
-                break;
-            default:
-                throw new IllegalArgumentException("The kind can't be: " + kind);
-        }
-        return result;
+                yield result;
+            }
+            default -> throw new IllegalArgumentException("The kind can't be: " + kind);
+        };
     }
 }

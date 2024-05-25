@@ -9,7 +9,7 @@ import javafx.scene.paint.Color;
  *
  * @author Bjork Pedersen (376143)
  */
-public class ColorMap {
+public final class ColorMap {
     /**
      * Private constructor to prevent instantiation of this utility class.
      *

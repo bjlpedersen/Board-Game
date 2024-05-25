@@ -43,7 +43,8 @@ public class PlayersUI {
         generalBox.setId("players");
 
         ObservableValue<PlayerColor> currentPlayer = obsGameState.map(GameState::currentPlayer);
-        ObservableValue<Map<PlayerColor, Integer>> points = obsGameState.map(gameState -> gameState.messageBoard().points());
+        ObservableValue<Map<PlayerColor, Integer>> points = obsGameState.
+                map(gameState -> gameState.messageBoard().points());
 
         obsGameState.addListener((o, oldState, newState) -> {
             points.getValue().clear();
@@ -51,7 +52,13 @@ public class PlayersUI {
         });
 
         for (PlayerColor player : obsGameState.getValue().players()) {
-            TextFlow playerTextFlow = createPlayerTextFlow(player, points, text, currentPlayer, obsGameState, generalBox);
+            TextFlow playerTextFlow = createPlayerTextFlow(
+                    player,
+                    points,
+                    text,
+                    currentPlayer,
+                    obsGameState,
+                    generalBox);
             generalBox.getChildren().add(playerTextFlow);
         }
 
@@ -70,24 +77,50 @@ public class PlayersUI {
      * @param generalBox The VBox that contains the TextFlows for all players.
      * @return A TextFlow for the player.
      */
-    private static TextFlow createPlayerTextFlow(PlayerColor player, ObservableValue<Map<PlayerColor, Integer>> points, TextMaker text, ObservableValue<PlayerColor> currentPlayer, ObservableValue<GameState> obsGameState, VBox generalBox) {
+    private static TextFlow createPlayerTextFlow(PlayerColor player,
+                                                 ObservableValue<Map<PlayerColor,
+                                                 Integer>> points,
+                                                 TextMaker text,
+                                                 ObservableValue<PlayerColor> currentPlayer,
+                                                 ObservableValue<GameState> obsGameState,
+                                                 VBox generalBox) {
         TextFlow playerTextFlow = new TextFlow();
         playerTextFlow.getStyleClass().add("player");
 
         Circle playerCircle = new Circle(5, ColorMap.fillColor(player));
         Text playerText = createPlayerText(player, points, text);
 
+        // Keep track of the previous currentPlayer
+        final PlayerColor[] previousPlayer = {null};
+
         currentPlayer.addListener((o, oldPlayer, newPlayer) -> {
-            for (Node textFlow : generalBox.getChildren()) {
-                textFlow.getStyleClass().remove("current");
+            // Remove the 'current' style class from the previous currentPlayer
+            if (previousPlayer[0] != null) {
+                for (Node textFlow : generalBox.getChildren()) {
+                    if (textFlow.getUserData() == previousPlayer[0]) {
+                        textFlow.getStyleClass().remove("current");
+                    }
+                }
             }
-            playerTextFlow.getStyleClass().add("current");
+
+            // Add the 'current' style class to the new currentPlayer
+            for (Node textFlow : generalBox.getChildren()) {
+                if (textFlow.getUserData() == newPlayer) {
+                    textFlow.getStyleClass().add("current");
+                }
+            }
+
+            // Update the previous currentPlayer
+            previousPlayer[0] = newPlayer;
         });
 
         playerTextFlow.getChildren().add(playerCircle);
         playerTextFlow.getChildren().add(playerText);
 
         createOccupantIcons(player, obsGameState, playerTextFlow);
+
+        // Store the player in the userData of the TextFlow
+        playerTextFlow.setUserData(player);
 
         return playerTextFlow;
     }

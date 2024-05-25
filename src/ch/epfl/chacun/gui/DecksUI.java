@@ -103,8 +103,8 @@ public class DecksUI {
     private static StackPane createTilePane(String id, ObservableValue<Integer> tilesLeft) {
         StackPane tilePane = new StackPane();
         ImageView tileImage = new ImageView();
-        tileImage.setFitWidth(tileImage.getFitWidth() / 2);
-        tileImage.setFitHeight(tileImage.getFitHeight() / 2);
+        tileImage.setFitWidth(ImageLoader.NORMAL_TILE_FIT_SIZE);
+        tileImage.setFitHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
         tileImage.setId(id);
         Text tilesLeftText = new Text(tilesLeft.getValue().toString());
         tilesLeftText.setWrappingWidth(tileImage.getFitWidth() * 0.8);

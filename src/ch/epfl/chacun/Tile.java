@@ -25,12 +25,7 @@ public record Tile(int id, Kind kind, TileSide n, TileSide e, TileSide s, TileSi
      * @return a list of tile sides
      */
     public List<TileSide> sides() {
-        ArrayList<TileSide> sides = new ArrayList<>();
-        sides.add(n);
-        sides.add(e);
-        sides.add(s);
-        sides.add(w);
-        return sides;
+        return List.of(n, e, s, w);
     }
 
     /**
@@ -55,13 +50,12 @@ public record Tile(int id, Kind kind, TileSide n, TileSide e, TileSide s, TileSi
      */
     public Set<Zone> zones() {
         Set<Zone> allZones = this.sideZones();
-        Set<Zone> result = new HashSet<>(Set.copyOf(allZones));
+        Set<Zone> result = new HashSet<>(allZones);
         for (Zone zone : allZones) {
-            if (zone instanceof Zone.River river && (((Zone.River) zone).hasLake())) {
+            if (zone instanceof Zone.River river && river.hasLake()) {
                 result.add(river.lake());
             }
         }
         return result;
     }
-
 }
