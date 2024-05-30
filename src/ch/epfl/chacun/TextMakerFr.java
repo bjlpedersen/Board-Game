@@ -48,10 +48,10 @@ public class TextMakerFr implements TextMaker {
             String currentPlayerName = map.get(listOfScorers.get(i));
             if (i == listOfScorers.size() - 2) {
                 result.append(STR. "\{ currentPlayerName } et " );
-            } else if (i == listOfScorers.size() - 1){
+            } else if (i == listOfScorers.size() - 1) {
                 result.append(STR. "\{ currentPlayerName }" );
             } else {
-                result.append(STR. "\{currentPlayerName}, ");
+                result.append(STR. "\{ currentPlayerName }, " );
             }
         }
         return result.toString();
@@ -77,40 +77,40 @@ public class TextMakerFr implements TextMaker {
     /**
      * Handles the case where there is only one of a certain animal.
      *
-     * @param result The StringBuilder to append the result to.
-     * @param animal The animal to handle.
+     * @param result       The StringBuilder to append the result to.
+     * @param animal       The animal to handle.
      * @param currentCount The current count of the animal.
      * @param nonZeroCount The number of non-zero counts.
      */
     private void handleSingleAnimal(StringBuilder result, String animal, int currentCount, int nonZeroCount) {
         if (nonZeroCount == 2) {
-            result.append(STR. "\{currentCount} \{animal} ");
+            result.append(STR. "\{ currentCount } \{ animal } " );
         } else if (nonZeroCount != 1) {
-            result.append(STR. "\{currentCount} \{animal}, ");
-        } else if (!result.isEmpty()){
-            result.append(STR. "et \{currentCount} \{animal}");
+            result.append(STR. "\{ currentCount } \{ animal }, " );
+        } else if (!result.isEmpty()) {
+            result.append(STR. "et \{ currentCount } \{ animal }" );
         } else {
-            result.append(STR."\{currentCount} \{animal}");
+            result.append(STR. "\{ currentCount } \{ animal }" );
         }
     }
 
     /**
      * Handles the case where there are multiple of a certain animal.
      *
-     * @param result The StringBuilder to append the result to.
-     * @param animal The animal to handle.
+     * @param result       The StringBuilder to append the result to.
+     * @param animal       The animal to handle.
      * @param currentCount The current count of the animal.
      * @param nonZeroCount The number of non-zero counts.
      */
     private void handleMultipleAnimals(StringBuilder result, String animal, int currentCount, int nonZeroCount) {
         if (nonZeroCount == 2) {
-            result.append(STR. "\{currentCount} \{animal}s ");
+            result.append(STR. "\{ currentCount } \{ animal }s " );
         } else if (nonZeroCount != 1) {
-            result.append(STR. "\{currentCount} \{animal}s, ");
-        } else if (!result.isEmpty()){
-            result.append(STR. "et \{currentCount} \{animal}s");
+            result.append(STR. "\{ currentCount } \{ animal }s, " );
+        } else if (!result.isEmpty()) {
+            result.append(STR. "et \{ currentCount } \{ animal }s" );
         } else {
-            result.append(STR."\{currentCount} \{animal}");
+            result.append(STR. "\{ currentCount } \{ animal }" );
         }
     }
 
@@ -142,7 +142,7 @@ public class TextMakerFr implements TextMaker {
             // Skip if there are none of this animal or the count is null
             if (currentCount == null || currentCount == 0) {
                 continue;
-            } else if (currentCount == 1){
+            } else if (currentCount == 1) {
                 // Handle the case where there is only one of this animal
                 handleSingleAnimal(result, animal, currentCount, nonZeroCount);
                 nonZeroCount -= 1;
@@ -159,20 +159,24 @@ public class TextMakerFr implements TextMaker {
      * Converts a set of player colors and a number of points to a string.
      *
      * @param playerColors A set of player colors.
-     * @param points The number of points.
+     * @param points       The number of points.
      * @return A string representation of the player colors and the points.
      */
     private String PointstoString(Set<PlayerColor> playerColors, int points) {
         if (playerColors.size() > 1) {
             if (points > 1 || points == 0) {
-                return STR. "\{ scorersToString(playerColors) } ont remporté \{ points } points en tant qu'occupant·e·s majoritaires" ;
+                return STR. "\{ scorersToString(playerColors) } " +
+                        STR. "ont remporté \{ points } points en tant qu'occupant·e·s majoritaires" ;
             }
-            return STR. "\{ scorersToString(playerColors) } ont remporté \{ points } point en tant qu'occupant·e·s majoritaires" ;
+            return STR. "\{ scorersToString(playerColors) } ont remporté \{ points } " +
+                    STR."point en tant qu'occupant·e·s majoritaires";
         }
         if (points > 1 || points == 0) {
-            return STR. "\{ scorersToString(playerColors) } a remporté \{ points } points en tant qu'occupant·e majoritaire" ;
+            return STR. "\{ scorersToString(playerColors) } a " +
+                    STR. "remporté \{ points } points en tant qu'occupant·e majoritaire" ;
         }
-        return STR. "\{ scorersToString(playerColors) } a remporté \{ points } point en tant qu'occupant·e majoritaire" ;
+        return STR. "\{ scorersToString(playerColors) } " +
+                STR. "a remporté \{ points } point en tant qu'occupant·e majoritaire" ;
     }
 
     /**
@@ -197,7 +201,7 @@ public class TextMakerFr implements TextMaker {
         if (points > 1) {
             return STR. "\{ points } points" ;
         }
-        return STR. "\{ points } point";
+        return STR. "\{ points } point" ;
     }
 
     /**
@@ -208,34 +212,37 @@ public class TextMakerFr implements TextMaker {
      */
     @Override
     public String playerClosedForestWithMenhir(PlayerColor player) {
-        return STR."\{map.get(player)} a fermé une forêt contenant un menhir et peut donc placer une tuile menhir.";
+        return STR. "\{ map.get(player) } a fermé une forêt contenant un menhir et peut donc placer une tuile menhir." ;
     }
 
     /**
      * Returns a message indicating the points scored by players for a forest.
      *
-     * @param scorers The colors of the players.
-     * @param points The number of points.
+     * @param scorers            The colors of the players.
+     * @param points             The number of points.
      * @param mushroomGroupCount The number of mushroom groups.
-     * @param tileCount The number of tiles.
+     * @param tileCount          The number of tiles.
      * @return The message.
      */
     @Override
     public String playersScoredForest(Set<PlayerColor> scorers, int points, int mushroomGroupCount, int tileCount) {
         if (mushroomGroupCount > 1) {
-            return STR. "\{PointstoString(scorers, points)} d'une forêt composée de \{ tileCount } tuiles et de \{ mushroomGroupCount } groupes de champignons.";
+            return STR. "\{ PointstoString(scorers, points) } d'une forêt " +
+                    STR. "composée de \{ tileCount } tuiles et de \{ mushroomGroupCount } groupes de champignons." ;
         } else if (mushroomGroupCount == 1) {
-            return STR. "\{PointstoString(scorers, points)} d'une forêt composée de \{ tileCount } tuiles et de \{ mushroomGroupCount } groupe de champignons.";
+            return STR. "\{ PointstoString(scorers, points) } d'une forêt " +
+                    STR. "composée de \{ tileCount } tuiles et de \{ mushroomGroupCount } groupe de champignons." ;
         } else {
-            return STR. "\{PointstoString(scorers, points)} d'une forêt composée de \{ tileCount } tuiles.";
+            return STR. "\{ PointstoString(scorers, points) } " +
+                    STR. "d'une forêt composée de \{ tileCount } tuiles." ;
         }
     }
 
     /**
      * Returns a message indicating the points scored by players for a river.
      *
-     * @param scorers The colors of the players.
-     * @param points The number of points.
+     * @param scorers   The colors of the players.
+     * @param points    The number of points.
      * @param fishCount The number of fish.
      * @param tileCount The number of tiles.
      * @return The message.
@@ -243,33 +250,36 @@ public class TextMakerFr implements TextMaker {
     @Override
     public String playersScoredRiver(Set<PlayerColor> scorers, int points, int fishCount, int tileCount) {
         if (fishCount > 0) {
-            return STR. "\{PointstoString(scorers, points)} d'une rivière composée de \{tileCount} tuiles et contenant \{fishCount} poissons.";
+            return STR. "\{ PointstoString(scorers, points) } " +
+                    STR. "d'une rivière composée de \{ tileCount } tuiles et contenant \{ fishCount } poissons." ;
         } else {
-            return STR. "\{PointstoString(scorers, points)} d'une rivière composée de \{ tileCount } tuiles.";
-            }
+            return STR. "\{ PointstoString(scorers, points) } d'une rivière composée de \{ tileCount } tuiles." ;
+        }
     }
 
     /**
      * Returns a message indicating the points scored by a player for a hunting trap.
      *
-     * @param scorer The color of the player.
-     * @param points The number of points.
+     * @param scorer  The color of the player.
+     * @param points  The number of points.
      * @param animals A map of animals.
      * @return The message.
      */
     @Override
     public String playerScoredHuntingTrap(PlayerColor scorer, int points, Map<Animal.Kind, Integer> animals) {
         if (!mapOfAnimalsToString(animals).isEmpty()) {
-            return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } points en plaçant la fosse à pieux dans un pré dans lequel elle est entourée de \{ mapOfAnimalsToString(animals) }." ;
+            return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } points en plaçant la fosse à pieux"
+                    + STR. " dans un pré dans lequel elle est entourée de \{ mapOfAnimalsToString(animals) }." ;
         }
-        return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } points en plaçant la fosse à pieux dans un pré." ;
+        return STR. "\{ scorersToString(Set.of(scorer)) }" +
+                STR. " a remporté \{ points } points en plaçant la fosse à pieux dans un pré." ;
     }
 
     /**
      * Returns a message indicating the points scored by a player for a logboat.
      *
-     * @param scorer The color of the player.
-     * @param points The number of points.
+     * @param scorer    The color of the player.
+     * @param points    The number of points.
      * @param lakeCount The number of lakes.
      * @return The message.
      */
@@ -277,14 +287,18 @@ public class TextMakerFr implements TextMaker {
     public String playerScoredLogboat(PlayerColor scorer, int points, int lakeCount) {
         if (lakeCount > 1) {
             if (points > 1) {
-                return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } points en plaçant la pirogue dans un réseau hydrographique contenant \{ lakeCount } lacs." ;
+                return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } points en plaçant " +
+                        STR. "la pirogue dans un réseau hydrographique contenant \{ lakeCount } lacs." ;
             }
-            return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } point en plaçant la pirogue dans un réseau hydrographique contenant \{ lakeCount } lacs." ;
+            return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } " +
+                    STR. "point en plaçant la pirogue dans un réseau hydrographique contenant \{ lakeCount } lacs." ;
         }
         if (points > 1) {
-            return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } points en plaçant la pirogue dans un réseau hydrographique contenant \{ lakeCount } lac." ;
+            return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } points en " +
+                    STR. " plaçant la pirogue dans un réseau hydrographique contenant \{ lakeCount } lac." ;
         }
-        return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } point en plaçant la pirogue dans un réseau hydrographique contenant \{ lakeCount } lac." ;
+        return STR. "\{ scorersToString(Set.of(scorer)) } a remporté \{ points } point " +
+                STR. "en plaçant la pirogue dans un réseau hydrographique contenant \{ lakeCount } lac." ;
 
     }
 
@@ -292,42 +306,44 @@ public class TextMakerFr implements TextMaker {
      * Returns a message indicating the points scored by players for a meadow.
      *
      * @param scorers The colors of the players.
-     * @param points The number of points.
+     * @param points  The number of points.
      * @param animals A map of animals.
      * @return The message.
      */
     @Override
     public String playersScoredMeadow(Set<PlayerColor> scorers, int points, Map<Animal.Kind, Integer> animals) {
         if (!mapOfAnimalsToString(animals).isEmpty()) {
-            return STR."\{PointstoString(scorers, points)} d'un pré contenant \{mapOfAnimalsToString(animals)}.";
+            return STR. "\{ PointstoString(scorers, points) } d'un pré contenant \{ mapOfAnimalsToString(animals) }." ;
         }
-        return STR."\{PointstoString(scorers, points)} d'un pré.";
+        return STR. "\{ PointstoString(scorers, points) } d'un pré." ;
 
     }
 
     /**
      * Returns a message indicating the points scored by players for a river system.
      *
-     * @param scorers The colors of the players.
-     * @param points The number of points.
+     * @param scorers   The colors of the players.
+     * @param points    The number of points.
      * @param fishCount The number of fish.
      * @return The message.
      */
     @Override
     public String playersScoredRiverSystem(Set<PlayerColor> scorers, int points, int fishCount) {
         if (fishCount > 1) {
-            return STR. "\{PointstoString(scorers, points)} d'un réseau hydrographique contenant \{fishCount} poissons.";
+            return STR. "\{ PointstoString(scorers, points) } " +
+                    STR. "d'un réseau hydrographique contenant \{ fishCount } poissons." ;
         } else if (fishCount == 1) {
-            return STR. "\{PointstoString(scorers, points)} d'un réseau hydrographique contenant \{fishCount} poisson.";
+            return STR. "\{ PointstoString(scorers, points) } d'un réseau hydrographique " +
+                    STR. "contenant \{ fishCount } poisson." ;
         }
-        return STR. "\{PointstoString(scorers, points)} d'un réseau hydrographique.";
+        return STR. "\{ PointstoString(scorers, points) } d'un réseau hydrographique." ;
     }
 
     /**
      * Returns a message indicating the points scored by players for a pit trap.
      *
      * @param scorers The colors of the players.
-     * @param points The number of points.
+     * @param points  The number of points.
      * @param animals A map of animals.
      * @return The message.
      */
@@ -337,14 +353,14 @@ public class TextMakerFr implements TextMaker {
             String middlePart = "d'un pré contenant la grande fosse à pieux entourée de";
             return STR. "\{ PointstoString(scorers, points) } \{ middlePart } \{ mapOfAnimalsToString(animals) }." ;
         }
-        return STR."\{ PointstoString(scorers, points) } d'un pré contenant la grande fosse à pieux.";
+        return STR. "\{ PointstoString(scorers, points) } d'un pré contenant la grande fosse à pieux." ;
     }
 
     /**
      * Returns a message indicating the points scored by players for a raft.
      *
-     * @param scorers The colors of the players.
-     * @param points The number of points.
+     * @param scorers   The colors of the players.
+     * @param points    The number of points.
      * @param lakeCount The number of lakes.
      * @return The message.
      */
@@ -361,7 +377,7 @@ public class TextMakerFr implements TextMaker {
      * Returns a message indicating the players who won the game.
      *
      * @param winners The colors of the winning players.
-     * @param points The number of points.
+     * @param points  The number of points.
      * @return The message.
      */
     @Override

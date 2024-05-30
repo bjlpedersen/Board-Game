@@ -7,6 +7,7 @@ import java.util.List;
  * This interface represents a side of a tile in the game.
  * It is a sealed interface, meaning that all implementations of this interface
  * are known and are nested within this interface.
+ *
  * @author Bjork Pedersen (376143)
  */
 public sealed interface TileSide {
@@ -28,6 +29,7 @@ public sealed interface TileSide {
 
     /**
      * This record represents a forest side of a tile.
+     *
      * @author Bjork Pedersen (376143)
      */
     public record Forest(Zone.Forest forest) implements TileSide {
@@ -62,6 +64,7 @@ public sealed interface TileSide {
 
     /**
      * This record represents a meadow side of a tile.
+     *
      * @author Bjork Pedersen (376143)
      */
     public record Meadow(Zone.Meadow meadow) implements TileSide {
@@ -96,6 +99,7 @@ public sealed interface TileSide {
 
     /**
      * This record represents a river side of a tile.
+     *
      * @author Bjork Pedersen (376143)
      */
     public record River(Zone.Meadow meadow1, Zone.River river, Zone.Meadow meadow2) implements TileSide {
@@ -121,7 +125,7 @@ public sealed interface TileSide {
         public boolean isSameKindAs(TileSide that) {
             for (Zone zone : that.zones()) {
                 if (zone instanceof Zone.River) {
-                    return  true;
+                    return true;
                 }
             }
             return false;

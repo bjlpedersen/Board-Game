@@ -8,10 +8,8 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This class provides a user interface for the players in the game.
@@ -34,7 +32,7 @@ public class PlayersUI {
      * Creates a new Node for the players UI.
      *
      * @param obsGameState the observable game state
-     * @param text the text maker for player names
+     * @param text         the text maker for player names
      * @return a Node representing the players UI
      */
     public static Node create(ObservableValue<GameState> obsGameState, TextMaker text) {
@@ -69,17 +67,17 @@ public class PlayersUI {
      * Creates a TextFlow for a player. The TextFlow includes a circle representing the player's color,
      * the player's current points, and icons for the player's occupants.
      *
-     * @param player The player for whom the TextFlow is being created.
-     * @param points An ObservableValue of a Map that maps each PlayerColor to their current points.
-     * @param text A TextMaker for creating the text for the player's points.
+     * @param player        The player for whom the TextFlow is being created.
+     * @param points        An ObservableValue of a Map that maps each PlayerColor to their current points.
+     * @param text          A TextMaker for creating the text for the player's points.
      * @param currentPlayer An ObservableValue of the current player.
-     * @param obsGameState An ObservableValue of the current game state.
-     * @param generalBox The VBox that contains the TextFlows for all players.
+     * @param obsGameState  An ObservableValue of the current game state.
+     * @param generalBox    The VBox that contains the TextFlows for all players.
      * @return A TextFlow for the player.
      */
     private static TextFlow createPlayerTextFlow(PlayerColor player,
                                                  ObservableValue<Map<PlayerColor,
-                                                 Integer>> points,
+                                                         Integer>> points,
                                                  TextMaker text,
                                                  ObservableValue<PlayerColor> currentPlayer,
                                                  ObservableValue<GameState> obsGameState,
@@ -130,15 +128,21 @@ public class PlayersUI {
      *
      * @param player The player for whom the Text is being created.
      * @param points An ObservableValue of a Map that maps each PlayerColor to their current points.
-     * @param text A TextMaker for creating the text for the player's points.
+     * @param text   A TextMaker for creating the text for the player's points.
      * @return A Text for the player's points.
      */
-    private static Text createPlayerText(PlayerColor player, ObservableValue<Map<PlayerColor, Integer>> points, TextMaker text) {
+    private static Text createPlayerText(
+            PlayerColor player,
+            ObservableValue<Map<PlayerColor,
+                    Integer>> points,
+            TextMaker text) {
         Text playerText = new Text();
-        playerText.textProperty().set(text.playerName(player) + " : " + points.getValue().getOrDefault(player, 0) + "\n");
+        playerText.textProperty().set(text.playerName(player) + " : " +
+                points.getValue().getOrDefault(player, 0) + "\n");
 
         points.addListener((o, oldPoints, newPoints) -> {
-            playerText.setText(text.playerName(player) + " : " + points.getValue().getOrDefault(player, 0) + "\n");
+            playerText.setText(text.playerName(player) + " : " +
+                    points.getValue().getOrDefault(player, 0) + "\n");
         });
 
         return playerText;
@@ -147,11 +151,14 @@ public class PlayersUI {
     /**
      * Creates icons for a player's occupants and adds them to a TextFlow.
      *
-     * @param player The player for whom the icons are being created.
-     * @param obsGameState An ObservableValue of the current game state.
+     * @param player         The player for whom the icons are being created.
+     * @param obsGameState   An ObservableValue of the current game state.
      * @param playerTextFlow The TextFlow to which the icons are added.
      */
-    private static void createOccupantIcons(PlayerColor player, ObservableValue<GameState> obsGameState, TextFlow playerTextFlow) {
+    private static void createOccupantIcons(
+            PlayerColor player,
+            ObservableValue<GameState> obsGameState,
+            TextFlow playerTextFlow) {
         for (Occupant.Kind o : List.of(Occupant.Kind.HUT, Occupant.Kind.PAWN)) {
             for (int i = 0; i < Occupant.occupantsCount(o); ++i) {
                 Node occ = Icon.newFor(player, o);

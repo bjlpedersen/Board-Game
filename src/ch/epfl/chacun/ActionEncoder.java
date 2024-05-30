@@ -18,12 +18,13 @@ public class ActionEncoder {
      *
      * @throws AssertionError always
      */
-    private ActionEncoder() {}
+    private ActionEncoder() {
+    }
 
     /**
      * Encodes a tile placement action into a StateAction object.
      *
-     * @param state The current game state.
+     * @param state      The current game state.
      * @param placedTile The tile that was placed.
      * @return A StateAction object representing the action.
      * @throws IllegalArgumentException If the position index is invalid.
@@ -53,7 +54,7 @@ public class ActionEncoder {
      * Encodes a new occupant action into a StateAction object.
      *
      * @param state The current game state.
-     * @param occ The new occupant.
+     * @param occ   The new occupant.
      * @return A StateAction object representing the action.
      */
     public static StateAction withNewOccupant(GameState state, Occupant occ) {
@@ -72,25 +73,27 @@ public class ActionEncoder {
      * Encodes an occupant removal action into a StateAction object.
      *
      * @param state The current game state.
-     * @param occ The occupant to be removed.
+     * @param occ   The occupant to be removed.
      * @return A StateAction object representing the action.
      */
     public static StateAction withOccupantRemoved(GameState state, Occupant occ) {
         if (occ == null) {
-            return new StateAction(state , "7");
+            return new StateAction(state, "7");
         }
         StringBuilder action = new StringBuilder();
         List<Occupant> boardOccupants = new ArrayList<>(state.board().occupants().stream().toList());
         boardOccupants.sort(Comparator.comparingInt(Occupant::zoneId));
         int occIndex = boardOccupants.indexOf(occ);
         action.append(Integer.toBinaryString(occIndex));
-        return new StateAction(state.withOccupantRemoved(occ), Base32.encodeBits5(Integer.parseInt(action.toString())));
+        return new StateAction(
+                state.withOccupantRemoved(occ),
+                Base32.encodeBits5(Integer.parseInt(action.toString())));
     }
 
     /**
      * Decodes an action string and applies it to the game state.
      *
-     * @param state The current game state.
+     * @param state  The current game state.
      * @param action The action string to decode and apply.
      * @return A StateAction object representing the new game state and the action.
      * @throws InvalidActionMessageException If the action string is invalid.
@@ -106,20 +109,31 @@ public class ActionEncoder {
             switch (state.nextAction()) {
                 case PLACE_TILE -> {
                     String actionDecodedBinary = Integer.toBinaryString(actionDecoded);
-                    String actionDecodedString = String.format("%10s", actionDecodedBinary).replace(' ', '0');
-                    List<Pos> insertionPositions = new ArrayList<>(state.board().insertionPositions().stream().toList());
+                    String actionDecodedString = String
+                            .format("%10s", actionDecodedBinary)
+                            .replace(' ', '0');
+                    List<Pos> insertionPositions = new ArrayList<>(state
+                            .board()
+                            .insertionPositions()
+                            .stream()
+                            .toList());
                     insertionPositions.sort(Comparator.comparingInt(Pos::x).thenComparingInt(Pos::y));
                     Pos pos = insertionPositions.get(Integer.parseInt(actionDecodedString.substring(0, 8), 2));
                     Rotation rot = Rotation.ALL.get(Integer.parseInt(actionDecodedString.substring(8, 10), 2));
-                    PlacedTile placedTile = new PlacedTile(state.tileToPlace(), state.currentPlayer(), rot, pos, null);
+                    PlacedTile placedTile = new PlacedTile(
+                            state.tileToPlace(),
+                            state.currentPlayer(),
+                            rot,
+                            pos,
+                            null);
                     return new StateAction(state.withPlacedTile(placedTile), action);
                 }
                 case OCCUPY_TILE -> {
                     String actionDecodedString = formatOccupyAndRetake;
                     if (actionDecodedString.equals("11111")) return new StateAction(state, action);
-                    int zoneId = Integer.parseInt(actionDecodedString.substring(1, 5), 2);
+                    int zoneId = actionDecoded & 0b01111;
                     zoneId = zoneId + state.board().lastPlacedTile().id() * 10;
-                    if (actionDecodedString.charAt(0) == 1) {
+                    if ((actionDecoded & 0b10000) != 0) {
                         Occupant occ = new Occupant(Occupant.Kind.HUT, zoneId);
                         return new StateAction(state.withNewOccupant(occ), action);
                     }
@@ -143,7 +157,7 @@ public class ActionEncoder {
     /**
      * Checks if an action string is invalid for the current game state.
      *
-     * @param state The current game state.
+     * @param state  The current game state.
      * @param action The action string to check.
      * @throws InvalidActionMessageException If the action string is invalid.
      */
@@ -154,32 +168,39 @@ public class ActionEncoder {
         action = Integer.toBinaryString(newAction);
 
         // Check if the binary string is a valid Base32 string
-        if (!Base32.isValid(action)) throw new InvalidActionMessageException("Character in action does not fit Base32");
+        if (!Base32.isValid(action))
+            throw new InvalidActionMessageException("Character in action does not fit Base32");
 
         // Check the next action based on the current game state
         switch (state.nextAction()) {
             case PLACE_TILE -> {
                 // Check if the binary string has the correct length for a PLACE_TILE action
-                if (action.length() != 8) throw new InvalidActionMessageException("The message does not have the correct length");
+                if (action.length() != 8)
+                    throw new InvalidActionMessageException("The message does not have the correct length");
                 // Check if the fringe position is within the valid range
                 if (Integer.parseInt(action.substring(0, 8), 10) > 190 ||
-                        Integer.parseInt(action.substring(0, 8), 2) < 0) throw new InvalidActionMessageException("The fringe position is out of bounds");
+                        Integer.parseInt(action.substring(0, 8), 2) < 0)
+                    throw new InvalidActionMessageException("The fringe position is out of bounds");
             }
             case OCCUPY_TILE -> {
                 // Check if the binary string has the correct length for an OCCUPY_TILE action
-                if (action.length() != 5) throw new InvalidActionMessageException("The message does not have the correct length");
+                if (action.length() != 5)
+                    throw new InvalidActionMessageException("The message does not have the correct length");
                 // Check if the zone id is within the valid range
                 if (Integer.parseInt(action.substring(1, 5)) > 9 ||
                         Integer.parseInt(action.substring(1, 5)) < 0 &&
-                                !action.equals("11111")) throw new InvalidActionMessageException("The zone id is out of bounds");
+                                !action.equals("11111"))
+                    throw new InvalidActionMessageException("The zone id is out of bounds");
             }
             case RETAKE_PAWN -> {
                 // Check if the binary string has the correct length for a RETAKE_PAWN action
-                if (action.length() != 5) throw new InvalidActionMessageException("The message does not have the correct length");
+                if (action.length() != 5)
+                    throw new InvalidActionMessageException("The message does not have the correct length");
                 // Check if the occupant index is within the valid range
                 if (Integer.parseInt(action) > 24 ||
                         Integer.parseInt(action) < 0 &&
-                                !action.equals("11111")) throw new InvalidActionMessageException("the occupant index is out of bounds");
+                                !action.equals("11111"))
+                    throw new InvalidActionMessageException("the occupant index is out of bounds");
             }
             default -> throw new InvalidActionMessageException("The next action is invalid");
         }
@@ -196,7 +217,7 @@ public class ActionEncoder {
         /**
          * Constructs a new StateAction object.
          *
-         * @param gameState The game state.
+         * @param gameState     The game state.
          * @param encodedAction The encoded action.
          */
         public StateAction(GameState gameState, String encodedAction) {

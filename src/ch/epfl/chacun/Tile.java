@@ -5,6 +5,7 @@ import java.util.*;
 /**
  * This record represents a tile in the game.
  * A tile has an id, a kind, and four sides (north, east, south, west).
+ *
  * @author Bjork Pedersen (376143)
  */
 public record Tile(int id, Kind kind, TileSide n, TileSide e, TileSide s, TileSide w) {

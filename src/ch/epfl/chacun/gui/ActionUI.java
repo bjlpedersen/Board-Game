@@ -10,13 +10,14 @@ import javafx.scene.text.Text;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ActionsUI {
+public class ActionUI {
     private static final int MAX_ACTIONS_DISPLAYED = 4;
 
     /**
      * Private constructor to prevent instantiation of this utility class.
      */
-    private ActionsUI() {}
+    private ActionUI() {
+    }
 
 
     /**
@@ -24,7 +25,7 @@ public class ActionsUI {
      * allows the user to input an action to execute. The Text is updated whenever the observable actions change.
      * The TextField only allows certain characters to be inputted and executes an action when the enter key is pressed.
      *
-     * @param obsActions An ObservableValue of a List of Strings representing the observable actions.
+     * @param obsActions    An ObservableValue of a List of Strings representing the observable actions.
      * @param executeAction A Consumer of a String representing the action to execute.
      * @return A Node containing an HBox with a Text and TextField.
      */
@@ -38,7 +39,8 @@ public class ActionsUI {
             text.setText(createActionText(newActions));
         });
 
-        TextField textField = createTextField(executeAction);
+        Pair pair = createTextField(executeAction, obsActions);
+        TextField textField = (TextField) pair.first;
 
         textBox.getChildren().addAll(List.of(text, textField));
         return textBox;
@@ -75,7 +77,9 @@ public class ActionsUI {
      * @return A TextField that only allows certain characters to be
      * inputted and executes an action when the enter key is pressed.
      */
-    private static TextField createTextField(Consumer<String> executeAction) {
+    private static Pair<TextField, ObservableValue<List<String>>> createTextField(
+            Consumer<String> executeAction,
+            ObservableValue<List<String>> obsActions) {
         TextField textField = new TextField();
         textField.setId("action-field");
         String allowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -94,6 +98,45 @@ public class ActionsUI {
             executeAction.accept(textInField);
             textField.clear();
         });
-        return textField;
+        return new Pair<>(textField, obsActions);
+    }
+
+    /**
+     * Represents a pair of objects.
+     *
+     * @author Bjork Pedersen (376143)
+     */
+    private static class Pair<A, B> {
+        private final A first;
+        private final B second;
+
+        /**
+         * Constructs a new Pair with the given objects.
+         *
+         * @param first  the first object in the Pair
+         * @param second the second object in the Pair
+         */
+        protected Pair(A first, B second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        /**
+         * Returns the first object in the Pair.
+         *
+         * @return the first object in the Pair
+         */
+        public A getFirst() {
+            return first;
+        }
+
+        /**
+         * Returns the second object in the Pair.
+         *
+         * @return the second object in the Pair
+         */
+        public B getSecond() {
+            return second;
+        }
     }
 }

@@ -5,15 +5,17 @@ import java.util.List;
 /**
  * This interface represents a Zone in the game.
  * A Zone can be of different types like Forest, Meadow, Lake, River etc.
+ *
  * @author Bjork Pedersen (376143)
  */
 public sealed interface Zone {
 
     /**
      * This enum represents the special powers that a Zone can have.
+     *
      * @author Bjork Pedersen (376143)
      */
-    enum  SpecialPower {
+    enum SpecialPower {
         SHAMAN,
         LOGBOAT,
         HUNTING_TRAP,
@@ -72,7 +74,8 @@ public sealed interface Zone {
 
     /**
      * This record represents a Forest zone in the game.
-     * @param id The id of the forest zone.
+     *
+     * @param id   The id of the forest zone.
      * @param kind the kind of forest
      * @author Bjork Pedersen (376143)
      */
@@ -80,6 +83,7 @@ public sealed interface Zone {
 
         /**
          * This enum represents the kind of a Forest.
+         *
          * @author Bjork Pedersen (376143)
          */
         public enum Kind {
@@ -94,7 +98,7 @@ public sealed interface Zone {
          * @return The id of the tile.
          */
         public int tileId() {
-            return id / 10 ;
+            return id / 10;
         }
 
         /**
@@ -121,8 +125,9 @@ public sealed interface Zone {
 
     /**
      * This record represents a Meadow zone in the game.
-     * @param id the id of the meadow
-     * @param animals the animals in the meadow
+     *
+     * @param id           the id of the meadow
+     * @param animals      the animals in the meadow
      * @param specialPower the special power of the meadow
      * @author Bjork Pedersen (376143)
      */
@@ -132,8 +137,8 @@ public sealed interface Zone {
          * This constructor creates a new Meadow zone with the given id, list of animals, and special power.
          * The list of animals is copied to ensure immutability.
          *
-         * @param id The id of the meadow zone.
-         * @param animals The list of animals in the meadow zone.
+         * @param id           The id of the meadow zone.
+         * @param animals      The list of animals in the meadow zone.
          * @param specialPower The special power of the meadow zone.
          */
         public Meadow {
@@ -148,7 +153,7 @@ public sealed interface Zone {
          * @return The id of the tile.
          */
         public int tileId() {
-            return id / 10 ;
+            return id / 10;
         }
 
         /**
@@ -163,6 +168,7 @@ public sealed interface Zone {
 
     /**
      * This interface represents a Water zone in the game.
+     *
      * @author Bjork Pedersen (376143)
      */
     public sealed interface Water extends Zone {
@@ -177,8 +183,9 @@ public sealed interface Zone {
 
     /**
      * This record represents a Lake zone in the game.
-     * @param id the id of the lake
-     * @param fishCount the count of fish in the lake
+     *
+     * @param id           the id of the lake
+     * @param fishCount    the count of fish in the lake
      * @param specialPower the special power of the lake
      * @author Bjork Pedersen (376143)
      */
@@ -199,7 +206,7 @@ public sealed interface Zone {
          */
         @Override
         public int tileId() {
-            return id / 10 ;
+            return id / 10;
         }
 
         /**
@@ -215,9 +222,10 @@ public sealed interface Zone {
 
     /**
      * This record represents a River zone in the game.
-     * @param id the id of the river
+     *
+     * @param id        the id of the river
      * @param fishCount the count of fish in the river
-     * @param lake the lake that the river is connected to, or null if the river is not connected to a lake
+     * @param lake      the lake that the river is connected to, or null if the river is not connected to a lake
      * @author Bjork Pedersen (376143)
      */
     public record River(int id, int fishCount, Lake lake) implements ch.epfl.chacun.Zone.Water {
@@ -229,7 +237,7 @@ public sealed interface Zone {
          */
         @Override
         public int tileId() {
-            return id / 10 ;
+            return id / 10;
         }
 
         /**

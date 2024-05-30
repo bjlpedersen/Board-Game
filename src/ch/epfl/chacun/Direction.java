@@ -5,6 +5,7 @@ import java.util.List;
 /**
  * This enum represents a Direction in the game.
  * A Direction can be NORTH (N), EAST (E), SOUTH (S), or WEST (W).
+ *
  * @author Bjork Pedersen (376143)
  */
 public enum Direction {

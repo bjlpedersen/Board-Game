@@ -13,9 +13,11 @@ public class Base32 {
 
     /**
      * Private constructor to prevent instantiation.
+     *
      * @throws AssertionError always
      */
-    private Base32() {}
+    private Base32() {
+    }
 
     /**
      * Checks if a string is a valid Base32 encoded string.

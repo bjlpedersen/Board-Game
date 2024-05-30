@@ -2,6 +2,7 @@ package ch.epfl.chacun;
 
 /**
  * This class represents a position on the board with x and y coordinates.
+ *
  * @author Bjork Pedersen (376143)
  */
 public record Pos(int x, int y) {

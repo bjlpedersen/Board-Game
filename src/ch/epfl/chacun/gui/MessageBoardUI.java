@@ -37,7 +37,7 @@ public class MessageBoardUI {
      * Creates a new Node for the message board UI.
      *
      * @param observableMessageBoard the observable message board
-     * @param observableTileIds the observable tile IDs
+     * @param observableTileIds      the observable tile IDs
      * @return a Node representing the message board UI
      */
     public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessageBoard,
@@ -58,13 +58,16 @@ public class MessageBoardUI {
     /**
      * Creates a Text for a message on the message board. The Text includes the message's text and event handlers
      * for when the mouse enters and exits the Text. When the mouse enters the Text, the message's tile IDs are added
-     * to the observable tile IDs. When the mouse exits the Text, the message's tile IDs are removed from the observable tile IDs.
+     * to the observable tile IDs. When the mouse exits the Text,
+     * the message's tile IDs are removed from the observable tile IDs.
      *
-     * @param currentMessage The message for which the Text is being created.
+     * @param currentMessage    The message for which the Text is being created.
      * @param observableTileIds An ObjectProperty of a Set of Integers representing the observable tile IDs.
      * @return A Text for the message.
      */
-    private static Text createMessageText(MessageBoard.Message currentMessage, ObjectProperty<Set<Integer>> observableTileIds) {
+    private static Text createMessageText(
+            MessageBoard.Message currentMessage,
+            ObjectProperty<Set<Integer>> observableTileIds) {
         Text text = new Text(currentMessage.text());
         text.setWrappingWidth(TEXT_WRAPPING_WIDTH);
         text.setOnMouseEntered(mouseEvent -> {
@@ -80,18 +83,19 @@ public class MessageBoardUI {
         return text;
     }
 
-/**
- * Creates a ScrollPane for a VBox. The ScrollPane includes the VBox and has the ID "message-board". It also has
- * the stylesheet "message-board.css". After the ScrollPane is created, its vertical scroll value is set to 1.
- *
- * @param box The VBox for which the ScrollPane is being created.
- * @return A ScrollPane for the VBox.
- */
-private static ScrollPane createScrollPane(VBox box) {
-    ScrollPane messageScrollPane = new ScrollPane(box);
-    messageScrollPane.setId("message-board");
-    messageScrollPane.getStylesheets().add("message-board.css");
-    runLater(() -> messageScrollPane.setVvalue(1));
-    return messageScrollPane;
-}
+    /**
+     * Creates a ScrollPane for a VBox. The ScrollPane includes the VBox and has the ID "message-board". It also has
+     * the stylesheet "message-board.css". After the ScrollPane is created, its vertical scroll value is set to 1.
+     *
+     * @param box The VBox for which the ScrollPane is being created.
+     * @return A ScrollPane for the VBox.
+     */
+    private static ScrollPane createScrollPane(VBox box) {
+        ScrollPane messageScrollPane = new ScrollPane(box);
+        messageScrollPane.setId("message-board");
+        messageScrollPane.getStylesheets().add("message-board.css");
+        messageScrollPane.layout();
+        messageScrollPane.setVvalue(1);
+        return messageScrollPane;
+    }
 }

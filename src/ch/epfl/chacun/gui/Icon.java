@@ -9,11 +9,13 @@ import javafx.scene.shape.SVGPath;
 /**
  * This class provides utility methods for creating icons for the game.
  * It cannot be instantiated.
+ *
  * @author Bjork Pedersen (376143)
  */
 public class Icon {
     /**
      * Private constructor to prevent instantiation of this utility class.
+     *
      * @throws AssertionError always
      */
     private Icon() {
@@ -25,7 +27,7 @@ public class Icon {
      * The icon is represented as a SVGPath node, which can be added to a JavaFX scene graph.
      *
      * @param player the player for whom the icon is being created
-     * @param kind the kind of occupant for which the icon is being created
+     * @param kind   the kind of occupant for which the icon is being created
      * @return a Node representing the icon
      */
     public static Node newFor(PlayerColor player, Occupant.Kind kind) {

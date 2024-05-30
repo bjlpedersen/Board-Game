@@ -15,7 +15,7 @@ public record Occupant(Kind kind, int zoneId) {
      *
      * @author Bjork Pedersen (376143)
      */
-    public enum Kind{
+    public enum Kind {
         PAWN,
         HUT;
     }
@@ -24,9 +24,9 @@ public record Occupant(Kind kind, int zoneId) {
      * This constructor creates a new Occupant with the given kind and zoneId.
      * It checks if the kind is not null and if the zoneId is not negative.
      *
-     * @param kind The kind of the occupant.
+     * @param kind   The kind of the occupant.
      * @param zoneId The id of the zone that the occupant is part of.
-     * @throws NullPointerException if the kind is null.
+     * @throws NullPointerException     if the kind is null.
      * @throws IllegalArgumentException if the zoneId is negative.
      */
     public Occupant {

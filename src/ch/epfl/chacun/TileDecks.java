@@ -6,6 +6,7 @@ import java.util.function.Predicate;
 /**
  * This class represents a collection of decks of tiles in the game.
  * Each deck is categorized by the kind of tile it contains.
+ *
  * @author Bjork Pedersen (376143)
  */
 public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile> menhirTiles) {
@@ -14,7 +15,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
      * Constructor for TileDecks.
      * It initializes the decks with the provided lists of tiles.
      *
-     * @param startTiles List of start tiles.
+     * @param startTiles  List of start tiles.
      * @param normalTiles List of normal tiles.
      * @param menhirTiles List of menhir tiles.
      */
@@ -62,7 +63,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
     /**
      * Returns a new TileDecks instance with the top tile drawn from the specified deck until a condition is met.
      *
-     * @param kind The kind of the deck.
+     * @param kind      The kind of the deck.
      * @param predicate The condition to stop drawing tiles.
      * @return A new TileDecks instance with the top tiles drawn until the condition is met.
      */
@@ -97,7 +98,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
     /**
      * Returns a new TileDecks instance with the specified deck updated.
      *
-     * @param kind The kind of the deck.
+     * @param kind    The kind of the deck.
      * @param newDeck The new deck to replace the old one.
      * @return A new TileDecks instance with the updated deck.
      */

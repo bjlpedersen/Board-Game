@@ -3,13 +3,15 @@ package ch.epfl.chacun;
 /**
  * This class provides utility methods for checking conditions.
  * It is a final class and cannot be instantiated.
+ *
  * @author Bjork Pedersen (376143)
  */
 public final class Preconditions {
     /**
      * Private constructor to prevent instantiation of utility class.
      */
-    private Preconditions() {}
+    private Preconditions() {
+    }
 
     /**
      * Checks the truth of the given argument.

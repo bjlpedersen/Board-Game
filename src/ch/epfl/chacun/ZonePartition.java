@@ -7,6 +7,7 @@ import java.util.Set;
 
 /**
  * This class represents a partition of zones in the game.
+ *
  * @param <Z> The type of Zone this partition can contain.
  * @author Bjork Pedersen (376143)
  */
@@ -30,6 +31,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
 
     /**
      * Returns the area that contains the given zone.
+     *
      * @param zone The zone to look for.
      * @return The area that contains the zone.
      */
@@ -44,6 +46,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
 
     /**
      * This class is a builder for the ZonePartition class.
+     *
      * @param <Z> The type of Zone this builder can contain.
      */
     public static final class Builder<Z extends Zone> {
@@ -52,6 +55,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         /**
          * Constructor for the Builder class.
          * It initializes the areas set with the areas from the given partition.
+         *
          * @param partition The partition to copy the areas from.
          */
         public Builder(ZonePartition<Z> partition) {
@@ -60,15 +64,17 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
 
         /**
          * Adds a new singleton area with the given zone and open connections to the areas set.
-         * @param zone The zone to add.
+         *
+         * @param zone            The zone to add.
          * @param openConnections The number of open connections.
          */
         public void addSingleton(Z zone, int openConnections) {
-            areas.add(new Area<>(Set.of(zone), null,openConnections));
+            areas.add(new Area<>(Set.of(zone), null, openConnections));
         }
 
         /**
          * Adds an initial occupant to the area that contains the given zone.
+         *
          * @param zone The zone to look for.
          * @throws IllegalArgumentException if the occupant cannot be added
          */
@@ -84,7 +90,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         /**
          * Adds an initial occupant to the area that contains the given zone.
          *
-         * @param zone The zone to look for.
+         * @param zone  The zone to look for.
          * @param color The color of the player to be added as an occupant.
          * @throws IllegalArgumentException if the area is null or already has occupants.
          */
@@ -99,7 +105,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         /**
          * Removes an occupant from the area that contains the given zone.
          *
-         * @param zone The zone to look for.
+         * @param zone  The zone to look for.
          * @param color The color of the player to be removed as an occupant.
          * @throws IllegalArgumentException if the area is null or does not contain the occupant.
          */
@@ -132,6 +138,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
 
         /**
          * Removes all occupants from the given area.
+         *
          * @param area The area to remove the occupants from.
          */
         public void removeAllOccupantsOf(Area<Z> area) {
@@ -143,9 +150,10 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
 
         /**
          * Builds a new ZonePartition with the current areas set.
+         *
          * @return The new ZonePartition.
          */
-        public ZonePartition<Z>  build() {
+        public ZonePartition<Z> build() {
             return new ZonePartition<>(areas);
         }
 

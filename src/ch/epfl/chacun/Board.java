@@ -4,6 +4,7 @@ import java.util.*;
 
 /**
  * Represents a game board with various methods to manipulate and query the state of the board.
+ *
  * @author Bjork Pedersen (376143)
  */
 public final class Board {
@@ -18,12 +19,16 @@ public final class Board {
     /**
      * Constructs a new Board with the given placed tiles, order of placed tiles, zone partitions, and deleted animals.
      *
-     * @param placedTiles the placed tiles on the board
+     * @param placedTiles      the placed tiles on the board
      * @param placedTilesOrder the order of the placed tiles
-     * @param zonePartitions the partitions of the zones on the board
-     * @param deletedAnimals the set of deleted animals on the board
+     * @param zonePartitions   the partitions of the zones on the board
+     * @param deletedAnimals   the set of deleted animals on the board
      */
-    private Board(PlacedTile[] placedTiles, int[] placedTilesOrder, ZonePartitions zonePartitions, Set<Animal> deletedAnimals) {
+    private Board(
+            PlacedTile[] placedTiles,
+            int[] placedTilesOrder,
+            ZonePartitions zonePartitions,
+            Set<Animal> deletedAnimals) {
         this.placedTilesInArray = placedTiles;
         this.placedTilesOrder = placedTilesOrder;
         this.zonePartitions = zonePartitions;
@@ -83,27 +88,6 @@ public final class Board {
         }
         return occupants;
     }
-
-//    public Set<Occupant> occupants() {
-//        Set<PlayerColor> occupants = new HashSet<>();
-//        for (Area<Zone.Forest> forest : zonePartitions.forests().areas()) {
-//            if (forest.occupants() != null) {
-//                occupants.addAll(forest.occupants());
-//            }
-//        }
-//        for (Area<Zone.Meadow> meadow : zonePartitions.meadows().areas()) {
-//            if (meadow.occupants() != null) {
-//                occupants.addAll(meadow.occupants());
-//            }
-//        }
-//        for (Area<Zone.River> river : zonePartitions.rivers().areas()) {
-//            if (river.occupants() != null) {
-//                occupants.addAll(river.occupants());
-//            }
-//        }
-//        return occupants;
-//    }
-
 
 
     /**
@@ -167,7 +151,7 @@ public final class Board {
     /**
      * Returns the adjacent meadow of the given position and meadow zone.
      *
-     * @param pos the position
+     * @param pos        the position
      * @param meadowZone the meadow zone
      * @return the adjacent meadow of the given position and meadow zone
      */
@@ -195,7 +179,7 @@ public final class Board {
     /**
      * Returns the count of the given occupant kind for the given player.
      *
-     * @param player the player
+     * @param player       the player
      * @param occupantKind the occupant kind
      * @return the count of the given occupant kind for the given player
      */
@@ -203,7 +187,8 @@ public final class Board {
         int count = 0;
         for (int orderId : placedTilesOrder) {
             PlacedTile placedTile = tileWithId(orderId);
-            if (placedTile.placer() == player && placedTile.occupant() != null && placedTile.occupant().kind() == occupantKind) {
+            if (placedTile.placer() == player && placedTile.occupant() != null &&
+                    placedTile.occupant().kind() == occupantKind) {
                 count++;
             }
         }
@@ -214,7 +199,7 @@ public final class Board {
      * Checks if the given placed tile's position is valid based on the provided direction.
      *
      * @param placedTile The tile whose position is to be checked.
-     * @param direction The direction in which the tile's position is to be validated.
+     * @param direction  The direction in which the tile's position is to be validated.
      * @return true if the tile's position is valid in the given direction, false otherwise.
      * @throws IllegalArgumentException if an invalid direction is provided.
      */
@@ -337,8 +322,8 @@ public final class Board {
     /**
      * Returns whether the given tiles are compatible in the given direction: if their two sides are compatible
      *
-     * @param tile1 the first tile
-     * @param tile2 the second tile
+     * @param tile1     the first tile
+     * @param tile2     the second tile
      * @param direction the direction
      * @return true if the tiles are compatible, false otherwise
      */
@@ -356,7 +341,7 @@ public final class Board {
         Set<Pos> possibleInsertionsPositions = insertionPositions();
         for (Pos pos : possibleInsertionsPositions) {
             for (Rotation rotation : Rotation.ALL) {
-                if (canAddTile(new PlacedTile(tile, PlayerColor.GREEN, rotation, pos, null ))) {
+                if (canAddTile(new PlacedTile(tile, PlayerColor.GREEN, rotation, pos, null))) {
                     return true;
                 }
             }
@@ -383,7 +368,9 @@ public final class Board {
         newPartitionsBuilder.addTile(tile.tile());
         for (Direction direction : Direction.ALL) {
             if (tileAt(tile.pos().neighbor(direction)) != null) {
-                newPartitionsBuilder.connectSides(tile.side(direction), tileAt(tile.pos().neighbor(direction)).side(direction.opposite()));
+                newPartitionsBuilder.connectSides(
+                        tile.side(direction),
+                        tileAt(tile.pos().neighbor(direction)).side(direction.opposite()));
             }
         }
         return new Board(newPlacedTiles, newPlacedTilesOrder, newPartitionsBuilder.build(), deletedAnimals);
@@ -404,7 +391,7 @@ public final class Board {
         int indexInPlacedTiles = indexOfTileInPLacedTiles(tile);
         newPlacedTiles[indexInPlacedTiles] = tile.withOccupant(occupant);
         ZonePartitions.Builder zonePartitions = new ZonePartitions.Builder(this.zonePartitions);
-        zonePartitions.addInitialOccupant(tile.placer() ,occupant.kind(), tile.zoneWithId(zoneId));
+        zonePartitions.addInitialOccupant(tile.placer(), occupant.kind(), tile.zoneWithId(zoneId));
         return new Board(newPlacedTiles, placedTilesOrder, zonePartitions.build(), deletedAnimals);
     }
 
@@ -425,7 +412,7 @@ public final class Board {
         return new Board(newPlacedTiles, placedTilesOrder, zonePartitions.build(), deletedAnimals);
     }
 
-/**
+    /**
      * Returns a new board with the given tile removed.
      *
      * @param tile the tile to be removed
@@ -439,7 +426,7 @@ public final class Board {
      * Returns a new board without gatherers or fishers in the given forests and rivers.
      *
      * @param forests the forests
-     * @param rivers the rivers
+     * @param rivers  the rivers
      * @return a new board without gatherers or fishers in the given forests and rivers
      */
     public Board withoutGatherersOrFishersIn(Set<Area<Zone.Forest>> forests, Set<Area<Zone.River>> rivers) {
@@ -460,11 +447,14 @@ public final class Board {
 
     /**
      * Removes occupants in the given forests
-     * @param forests the Set of all forest areas
+     *
+     * @param forests     the Set of all forest areas
      * @param placedTiles the list of placed tiles it has to remove occupants from
      * @return new board with no occupants in forests
      */
-    private PlacedTile[] removeOccupantsInZonePartitionsForest(Set<Area<Zone.Forest>> forests, PlacedTile[] placedTiles) {
+    private PlacedTile[] removeOccupantsInZonePartitionsForest(
+            Set<Area<Zone.Forest>> forests,
+            PlacedTile[] placedTiles) {
         // Clone the array of placed tiles
         PlacedTile[] newPlacedTiles = placedTiles.clone();
         for (int orderId : placedTilesOrder) {
@@ -497,7 +487,8 @@ public final class Board {
 
     /**
      * Removes occupants in rivers
-     * @param rivers the Set of all river areas
+     *
+     * @param rivers      the Set of all river areas
      * @param placedTiles the list of placed tiles it has to remove occupants from
      * @return a new board with no occupants in rivers
      */
@@ -553,6 +544,7 @@ public final class Board {
 
     /**
      * Returns whether the given object is equal to this board.
+     *
      * @param obj the object we wish to compare
      * @return true of equal false if not
      */
@@ -572,7 +564,9 @@ public final class Board {
 
     @Override
     public int hashCode() {
-        return Objects.hash(Arrays.hashCode(placedTilesInArray), Arrays.hashCode(placedTilesOrder), zonePartitions, deletedAnimals);
+        return Objects.hash(
+                Arrays.hashCode(placedTilesInArray),
+                Arrays.hashCode(placedTilesOrder), zonePartitions, deletedAnimals);
     }
 
 
