@@ -1,4 +1,4 @@
-Down below are pictures of the board game created, it was made in my second semesster at EPFL following the instructions, guidance and help of the teacher and the teaching assistants.
+Down below are pictures of the board game created, it was made in my second semesster at EPFL following the instructions, guidance and help of the teacher and the teaching assistants. If you wish to play the game, the instructions are here: https://fgbradleys.com/wp-content/uploads/rules/Carcassonne-rules.pdf 
 
 
 <img width="1438" alt="Screenshot 2024-09-08 at 15 15 42" src="https://github.com/user-attachments/assets/6e988dc0-ac8f-4507-8903-280c1ef17ccf">
